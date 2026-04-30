@@ -97,8 +97,25 @@ def record(phrase: str, num_samples: int) -> None:
         if key == ord("q"):
             break
         if key == ord(" "):
-            # Record a 3-second clip
-            print(f"  Recording sample {collected + 1}... ", end="", flush=True)
+            # 2-second get-ready countdown — camera runs, nothing is captured
+            print(f"  Get ready... ", end="", flush=True)
+            ready_start = time.monotonic()
+            while time.monotonic() - ready_start < 2.0:
+                ok, fr = cap.read()
+                if not ok:
+                    continue
+                lm = vision.process(fr)
+                ann = vision.draw_overlay(fr, lm)
+                remaining = 2.0 - (time.monotonic() - ready_start)
+                cv2.putText(
+                    ann,
+                    f"Get ready: {remaining:.1f}s",
+                    (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 200, 255), 2,
+                )
+                cv2.imshow("Sumpay — Record Phrase", ann)
+                cv2.waitKey(1)
+
+            print(f"recording sample {collected + 1}... ", end="", flush=True)
             frames: list[np.ndarray] = []
             start = time.monotonic()
             while time.monotonic() - start < 3.0:

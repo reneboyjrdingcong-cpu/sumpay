@@ -72,8 +72,10 @@ KEYWORD_MAP: dict[str, str] = {
 }
 
 INITIAL_PHRASES: list[str] = [
-    "I have a headache for a week now",
-    "Can you check my eye?",
+    "I have a headache",
+    "for a week now",
+    "Can you check",
+    "my eye",
     "I feel dizzy",
     "I have chest pain",
     "I cannot sleep at night",

@@ -38,11 +38,11 @@ class RecognizerWorker(QThread):
             print("[recognizer] classifier not ready — recognition disabled")
 
         buffer: deque[np.ndarray] = deque(maxlen=config.WINDOW_LENGTH)
-        frames_since_last = 0          # frames accumulated since stride reset
-        dwell_count = 0                # how many consecutive confident windows
+        frames_since_last = 0          # signing frames since last stride
+        dwell_count = 0                # consecutive confident windows
         cooldown = 0                   # frames to wait before firing again
         last_label = ""
-        empty_streak = 0              # consecutive frames with no hands detected
+        empty_streak = 0              # consecutive frames with no hands
 
         while self._running:
             try:
@@ -53,22 +53,23 @@ class RecognizerWorker(QThread):
             if not classifier.ready:
                 continue
 
-            vec = build_frame_vector(landmarks)
-            buffer.append(vec)
-            frames_since_last += 1
             if cooldown > 0:
                 cooldown -= 1
 
             if is_empty(landmarks):
                 empty_streak += 1
-                # Only reset dwell after 10 consecutive empty frames — brief
-                # hand-dropout (MediaPipe miss) should not wipe progress.
-                if empty_streak >= 10:
+                if empty_streak == 30:  # ~1 s of no hands → wipe stale data
+                    buffer.clear()
+                    frames_since_last = 0
                     dwell_count = 0
                     last_label = ""
-                continue
-            else:
-                empty_streak = 0
+                continue  # never add empty frames to the buffer
+
+            # Hands present — accumulate signing frames only
+            empty_streak = 0
+            vec = build_frame_vector(landmarks)
+            buffer.append(vec)
+            frames_since_last += 1
 
             if (
                 len(buffer) == config.WINDOW_LENGTH

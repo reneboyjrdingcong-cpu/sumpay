@@ -1,0 +1,9 @@
+PyQt6>=6.6
+opencv-python>=4.9
+mediapipe>=0.10.14
+numpy>=1.26
+torch>=2.2
+pyttsx3>=2.90
+vosk>=0.3.45
+sounddevice>=0.4.6
+pytest>=8.0

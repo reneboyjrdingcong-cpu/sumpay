@@ -56,5 +56,4 @@ pytest tests/
 
 ## Architecture
 
-See `C:/Users/dingc/.claude/plans/i-want-to-create-crystalline-cat.md` for
-the full architecture plan and threading model.
+See `CLAUDE.md` for the threading model, recognition pipeline, and feature vector layout.

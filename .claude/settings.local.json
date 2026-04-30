@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/test_features.py tests/test_tts.py tests/test_stt.py tests/test_recognizer.py -v)",
+      "Bash(pip install *)",
+      "Bash(python -m training.train)",
+      "Bash(gh --version)",
+      "Bash(git --version)",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(gh repo *)",
+      "Bash(git push *)",
+      "Bash(python -m pytest tests/ -v)",
+      "WebSearch",
+      "Bash(claude plugin *)",
+      "mcp__plugin_figma_figma__get_metadata",
+      "mcp__plugin_figma_figma__get_screenshot",
+      "mcp__plugin_figma_figma__get_design_context"
+    ]
+  }
+}

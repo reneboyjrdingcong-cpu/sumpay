@@ -1,36 +1,37 @@
-"""High-contrast flat color palette and typography constants.
+"""White Mode design tokens — Apple-style monochromatic palette.
 
-Referenced by both styles.qss (via string substitution at startup) and
-Qt code that needs raw color values (e.g. landmark overlay painter).
+Referenced by styles.qss (via @TOKEN@ substitution) and Python code that
+needs raw values (landmark overlay painter, shadow effects).
 """
 from __future__ import annotations
 
-BG_PRIMARY = "#0A0E14"
-BG_SECONDARY = "#131820"
-BG_PANEL = "#1A2230"
-BORDER = "#2A3445"
+BG_PRIMARY        = "#FFFFFF"
+BG_GLASS          = "rgba(255, 255, 255, 140)"   # ~55% opacity
+BG_GLASS_DEEP     = "rgba(245, 245, 247, 217)"   # ~85% opacity
+BORDER_HAIRLINE   = "rgba(0, 0, 0, 10)"
 
-ACCENT = "#00E5FF"
-ACCENT_DIM = "#4FC3F7"
+TEXT_PRIMARY      = "#1D1D1F"
+TEXT_SECONDARY    = "#6E6E73"
+TEXT_HINT         = "#A1A1A6"
 
-TEXT_PRIMARY = "#FFFFFF"
-TEXT_SECONDARY = "#B0BEC5"
-TEXT_MUTED = "#607D8B"
+SHADOW_SOFT       = "rgba(0, 0, 0, 20)"
+SHADOW_MEDIUM     = "rgba(0, 0, 0, 31)"
 
-SUCCESS = "#00E676"
-WARNING = "#FFAB00"
-ERROR = "#FF5252"
+RADIUS_CARD   = 24
+RADIUS_LARGE  = 32
+RADIUS_CIRCLE = 28
 
-LANDMARK_HAND = "#00E5FF"
-LANDMARK_FACE = "#FFAB00"
-LANDMARK_CONNECTION = "#4FC3F7"
+FONT_FAMILY        = '"SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif'
+FONT_SIZE_BODY     = 16
+FONT_SIZE_HINT     = 14
+FONT_SIZE_HEADER   = 28
+FONT_SIZE_GREETING = 56
 
-FONT_FAMILY = '"Segoe UI", "Helvetica Neue", Arial, sans-serif'
-FONT_SIZE_BASE = 14
-FONT_SIZE_HEADER = 22
-FONT_SIZE_TRANSCRIPT = 26
-FONT_SIZE_CAPTION = 30
+# Landmark overlay — kept visible against white background
+LANDMARK_HAND       = "#1D1D1F"
+LANDMARK_FACE       = "#8A8A8E"
+LANDMARK_CONNECTION = "#3A3A3C"
 
-WINDOW_TITLE = "Project Sumpay  -  Offline Edge-AI Communication Dashboard"
-WINDOW_MIN_WIDTH = 1400
-WINDOW_MIN_HEIGHT = 820
+WINDOW_TITLE     = "Project Sumpay"
+WINDOW_MIN_WIDTH  = 1280
+WINDOW_MIN_HEIGHT = 800

@@ -73,14 +73,13 @@ def main() -> int:
         print(f"[tts] failed to start: {exc}")
         tts_worker = None
 
+    # Pass TTS worker to Connector — it will speak only after patient confirms.
+    window.set_tts_worker(tts_worker)
+
     try:
         from core.recognizer import RecognizerWorker
         recognizer = RecognizerWorker()
         recognizer.recognized.connect(window.on_recognized)
-        if tts_worker:
-            recognizer.recognized.connect(
-                lambda sentence, _conf: tts_worker.speak(sentence)
-            )
         if camera:
             camera.landmarks_ready.connect(recognizer.push_landmarks)
     except Exception as exc:

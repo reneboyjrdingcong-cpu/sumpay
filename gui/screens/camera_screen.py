@@ -16,6 +16,7 @@ from gui.widgets.glass_card import GlassCard
 
 class CameraScreen(QWidget):
     continue_clicked = pyqtSignal()
+    back             = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -24,8 +25,23 @@ class CameraScreen(QWidget):
         self._phrases: list[str] = []
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(40, 40, 40, 32)
+        root.setContentsMargins(40, 16, 40, 32)
         root.setSpacing(0)
+
+        # ── Back button ─────────────────────────────────────────────── #
+        top_bar = QHBoxLayout()
+        back_btn = QPushButton("‹ Back")
+        back_btn.setFlat(True)
+        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        back_btn.setStyleSheet(
+            f"color: {theme.TEXT_HINT}; font-size: {theme.FONT_SIZE_HINT}px; "
+            "font-weight: 300; background: transparent; border: none;"
+        )
+        back_btn.clicked.connect(self.back)
+        top_bar.addWidget(back_btn)
+        top_bar.addStretch()
+        root.addLayout(top_bar)
+        root.addSpacing(8)
 
         # ── Camera surface ──────────────────────────────────────────── #
         cam_card = GlassCard(deep=False)
@@ -33,39 +49,27 @@ class CameraScreen(QWidget):
         cam_layout.setContentsMargins(0, 0, 0, 0)
 
         self._video = VideoWidget(cam_card)
-        # Override the object name so the rounded QSS applies via the card, not
-        # the label's own rule — we paint inside the card frame directly.
         self._video.setObjectName("videoCanvas")
         cam_layout.addWidget(self._video)
 
         root.addWidget(cam_card, stretch=7)
         root.addSpacing(24)
 
-        # ── Translation card ────────────────────────────────────────── #
-        bottom_row = QHBoxLayout()
-        bottom_row.setSpacing(16)
-
+        # ── Translation card (Continue button lives inside) ─────────── #
         trans_card = GlassCard(deep=True)
         trans_layout = QVBoxLayout(trans_card)
         trans_layout.setContentsMargins(24, 16, 24, 16)
 
-        self._translation_label = QLabel("")
+        self._translation_label = QLabel("Signing detected text will appear here…")
         self._translation_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self._translation_label.setWordWrap(True)
-        self._translation_label.setStyleSheet(
-            f"color: {theme.TEXT_PRIMARY}; "
-            f"font-size: {theme.FONT_SIZE_BODY}px; "
-            "font-weight: 300; "
-            "background: transparent;"
-        )
-        self._translation_label.setText("Signing detected text will appear here…")
         self._translation_label.setStyleSheet(
             f"color: {theme.TEXT_HINT}; "
             f"font-size: {theme.FONT_SIZE_BODY}px; "
             "font-weight: 300; "
             "background: transparent;"
         )
-        trans_layout.addWidget(self._translation_label)
+        trans_layout.addWidget(self._translation_label, stretch=1)
 
         continue_btn = QPushButton("Continue →")
         continue_btn.setObjectName("continueBtn")
@@ -73,9 +77,14 @@ class CameraScreen(QWidget):
         continue_btn.clicked.connect(self.continue_clicked)
         continue_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
-        bottom_row.addWidget(trans_card, stretch=1)
-        bottom_row.addWidget(continue_btn, alignment=Qt.AlignmentFlag.AlignBottom)
+        continue_row = QHBoxLayout()
+        continue_row.setContentsMargins(0, 8, 0, 0)
+        continue_row.addStretch()
+        continue_row.addWidget(continue_btn)
+        trans_layout.addLayout(continue_row)
 
+        bottom_row = QHBoxLayout()
+        bottom_row.addWidget(trans_card)
         root.addLayout(bottom_row, stretch=2)
 
     # ------------------------------------------------------------------ #

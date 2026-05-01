@@ -52,6 +52,35 @@ QPushButton#circleBtn:pressed {
     background-color: rgba(210, 210, 215, 230);
 }
 
+/* ── Confirm / Retry / Edit color variants ─────────────────────────── */
+
+QPushButton#circleBtnConfirm {
+    background-color: #34C759;
+    border: none; border-radius: 28px;
+    min-width: 56px; min-height: 56px; max-width: 56px; max-height: 56px;
+    color: #FFFFFF; font-size: @FONT_SIZE_BODY@px; font-weight: 600;
+}
+QPushButton#circleBtnConfirm:hover   { background-color: #30D158; }
+QPushButton#circleBtnConfirm:pressed { background-color: #248A3D; }
+
+QPushButton#circleBtnRetry {
+    background-color: #FF3B30;
+    border: none; border-radius: 28px;
+    min-width: 56px; min-height: 56px; max-width: 56px; max-height: 56px;
+    color: #FFFFFF; font-size: @FONT_SIZE_BODY@px; font-weight: 600;
+}
+QPushButton#circleBtnRetry:hover   { background-color: #FF453A; }
+QPushButton#circleBtnRetry:pressed { background-color: #D70015; }
+
+QPushButton#circleBtnEdit {
+    background-color: #FF9F0A;
+    border: none; border-radius: 28px;
+    min-width: 56px; min-height: 56px; max-width: 56px; max-height: 56px;
+    color: #FFFFFF; font-size: @FONT_SIZE_BODY@px; font-weight: 600;
+}
+QPushButton#circleBtnEdit:hover   { background-color: #FFB340; }
+QPushButton#circleBtnEdit:pressed { background-color: #C87A00; }
+
 /* ── Continue button (camera screen) ──────────────────────────────── */
 
 QPushButton#continueBtn {

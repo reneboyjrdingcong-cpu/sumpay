@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QVBoxLayout, QLabel, QTextEdit, QSizePolicy,
+    QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QTextEdit, QSizePolicy,
 )
 
 from gui import theme
@@ -13,7 +13,8 @@ from gui.widgets.circle_button import CircleButton
 
 class ConfirmScreen(QWidget):
     confirmed = pyqtSignal(str)
-    retry = pyqtSignal()
+    retry     = pyqtSignal()
+    back      = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -23,8 +24,22 @@ class ConfirmScreen(QWidget):
         self._editing = False
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(60, 50, 60, 50)
-        root.setSpacing(20)
+        root.setContentsMargins(60, 32, 60, 50)
+        root.setSpacing(0)
+
+        top_bar = QHBoxLayout()
+        back_btn = QPushButton("‹ Back")
+        back_btn.setFlat(True)
+        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        back_btn.setStyleSheet(
+            f"color: {theme.TEXT_HINT}; font-size: {theme.FONT_SIZE_HINT}px; "
+            "font-weight: 300; background: transparent; border: none;"
+        )
+        back_btn.clicked.connect(self.back)
+        top_bar.addWidget(back_btn)
+        top_bar.addStretch()
+        root.addLayout(top_bar)
+        root.addSpacing(18)
 
         # ── Header card ─────────────────────────────────────────────── #
         header_card = GlassCard(deep=False)
@@ -42,6 +57,7 @@ class ConfirmScreen(QWidget):
         header_layout.addWidget(header_lbl)
 
         root.addWidget(header_card)
+        root.addSpacing(16)
 
         # ── Main row: text card + buttons ───────────────────────────── #
         content_row = QHBoxLayout()
@@ -85,9 +101,9 @@ class ConfirmScreen(QWidget):
         btn_col.setSpacing(20)
         btn_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        self._confirm_btn = CircleButton("Confirm")
-        self._retry_btn   = CircleButton("Retry")
-        self._edit_btn    = CircleButton("Edit")
+        self._confirm_btn = CircleButton("Confirm", variant="confirm")
+        self._retry_btn   = CircleButton("Retry",   variant="retry")
+        self._edit_btn    = CircleButton("Edit",    variant="edit")
 
         self._confirm_btn.clicked.connect(self._on_confirm)
         self._retry_btn.clicked.connect(self._on_retry)

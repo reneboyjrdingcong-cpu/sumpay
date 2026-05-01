@@ -58,6 +58,7 @@ class DoctorConfirmScreen(QWidget):
         )
         header_layout.addWidget(header_lbl)
         root.addWidget(header_card)
+        root.addSpacing(16)
 
         # ── Main row: text card + buttons ───────────────────────────────── #
         content_row = QHBoxLayout()
@@ -88,8 +89,8 @@ class DoctorConfirmScreen(QWidget):
         btn_col.setSpacing(20)
         btn_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        self._confirm_btn = CircleButton("Confirm")
-        self._retry_btn   = CircleButton("Retry")
+        self._confirm_btn = CircleButton("Confirm", variant="confirm")
+        self._retry_btn   = CircleButton("Retry",   variant="retry")
 
         self._confirm_btn.clicked.connect(self._on_confirm)
         self._retry_btn.clicked.connect(self._on_retry)

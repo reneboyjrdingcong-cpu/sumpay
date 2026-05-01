@@ -9,17 +9,25 @@ from PyQt6.QtWidgets import QGraphicsDropShadowEffect
 from gui import theme
 
 
+_VARIANT_OBJ = {
+    "confirm": "circleBtnConfirm",
+    "retry":   "circleBtnRetry",
+    "edit":    "circleBtnEdit",
+    "default": "circleBtn",
+}
+
+
 class CircleButton(QWidget):
     clicked = pyqtSignal()
 
-    def __init__(self, label: str, parent=None):
+    def __init__(self, label: str, variant: str = "default", parent=None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(14)
 
         self._btn = QPushButton(parent=self)
-        self._btn.setObjectName("circleBtn")
+        self._btn.setObjectName(_VARIANT_OBJ.get(variant, "circleBtn"))
         self._btn.setFixedSize(56, 56)
         self._btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn.clicked.connect(self.clicked)

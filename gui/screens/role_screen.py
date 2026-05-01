@@ -4,7 +4,7 @@ from __future__ import annotations
 from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QColor, QPainter, QPen, QPainterPath, QFont
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy,
     QGraphicsDropShadowEffect,
 )
 
@@ -165,6 +165,7 @@ class _RoleCard(GlassCard):
 
 class RoleScreen(QWidget):
     role_selected = pyqtSignal(str)   # "patient" | "doctor"
+    back          = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -173,7 +174,20 @@ class RoleScreen(QWidget):
         root = QVBoxLayout(self)
         root.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.setSpacing(0)
-        root.setContentsMargins(60, 60, 60, 60)
+        root.setContentsMargins(60, 32, 60, 60)
+
+        top_bar = QHBoxLayout()
+        back_btn = QPushButton("‹ Back")
+        back_btn.setFlat(True)
+        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        back_btn.setStyleSheet(
+            f"color: {theme.TEXT_HINT}; font-size: {theme.FONT_SIZE_HINT}px; "
+            "font-weight: 300; background: transparent; border: none;"
+        )
+        back_btn.clicked.connect(self.back)
+        top_bar.addWidget(back_btn)
+        top_bar.addStretch()
+        root.addLayout(top_bar)
 
         root.addStretch(2)
 

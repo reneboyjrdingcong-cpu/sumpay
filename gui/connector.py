@@ -45,6 +45,7 @@ class Connector(QStackedWidget):
         # Patient-flow state
         self._accumulated: list[str] = []
         self._tts_worker = None
+        self._last_tts_text: str = ""
 
         # Doctor-flow state
         self._doctor_recording = False
@@ -75,11 +76,18 @@ class Connector(QStackedWidget):
         # Role → patient or doctor flow
         self._role.role_selected.connect(self._on_role_selected)
 
-        # Patient flow (unchanged behaviour)
+        # Patient flow — forward
         self._camera.continue_clicked.connect(self._go_patient_confirm)
         self._confirm.confirmed.connect(self._go_audio)
         self._confirm.retry.connect(self._go_camera_retry)
         self._audio.done.connect(self._go_splash)
+
+        # Patient flow — back navigation
+        self._role.back.connect(self._go_splash)
+        self._camera.back.connect(self._go_role)
+        self._confirm.back.connect(self._go_camera_from_confirm)
+        self._audio.back.connect(self._go_confirm_from_audio)
+        self._audio.replay_requested.connect(self._on_audio_replay)
 
         # Doctor flow — forward
         self._doc_choice.record_clicked.connect(self._go_doc_record)
@@ -178,6 +186,7 @@ class Connector(QStackedWidget):
 
     @pyqtSlot(str)
     def _go_audio(self, text: str) -> None:
+        self._last_tts_text = text
         self._audio.reset()
         self.setCurrentIndex(_AUDIO)
         if self._tts_worker and text:
@@ -189,6 +198,24 @@ class Connector(QStackedWidget):
         self._accumulated.clear()
         self._camera.clear_phrases()
         self.setCurrentIndex(_CAMERA)
+
+    def _go_camera_from_confirm(self) -> None:
+        """Back from Confirm — return to camera keeping accumulated phrases."""
+        self.setCurrentIndex(_CAMERA)
+
+    def _go_confirm_from_audio(self) -> None:
+        """Back from Audio — stop TTS if possible, return to Confirm."""
+        if self._tts_worker and hasattr(self._tts_worker, "stop_speaking"):
+            self._tts_worker.stop_speaking()
+        self.setCurrentIndex(_CONFIRM)
+
+    def _on_audio_replay(self) -> None:
+        """Re-speak the last confirmed patient text."""
+        if self._tts_worker and self._last_tts_text:
+            self._audio.reset()
+            self._tts_worker.speak(self._last_tts_text)
+        else:
+            self._audio.on_busy(False)
 
     # Doctor transitions
     def _go_doc_record(self) -> None:

@@ -92,7 +92,9 @@ def main() -> int:
     try:
         from core.keyword_router import KeywordRouter
         router = KeywordRouter(config.KEYWORD_MAP, config.ASL_VIDEOS_DIR)
-        router.play_video.connect(window.on_play_video)
+        # Router is wired inside Connector via set_router(); play_video signal
+        # routes to DoctorPlaybackScreen.play_video() from there.
+        window.set_router(router)
     except Exception as exc:
         print(f"[router] failed to start: {exc}")
         router = None
@@ -104,11 +106,11 @@ def main() -> int:
             sample_rate=config.MIC_SAMPLE_RATE,
             block_size=config.MIC_BLOCK_SIZE,
         )
-        stt.partial_transcript.connect(window.on_partial_transcript)
-        stt.final_transcript.connect(window.on_final_transcript)
+        # Gated STT slots — Connector ignores these unless doctor is recording.
+        stt.partial_transcript.connect(window._connector.on_partial_transcript)
+        stt.final_transcript.connect(window._connector.on_final_transcript)
+        # mic_level goes to both status bar and Connector (Connector gates it).
         stt.mic_level.connect(window.on_mic_level)
-        if router:
-            stt.final_transcript.connect(router.match)
     except Exception as exc:
         print(f"[stt] failed to start: {exc}")
         stt = None

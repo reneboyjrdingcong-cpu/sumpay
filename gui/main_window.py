@@ -1,12 +1,11 @@
-"""MainWindow — Connector (patient flow) left + DoctorPanel (clinician) right."""
+"""MainWindow — full-screen kiosk Connector (patient + doctor flows)."""
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QSplitter
+from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
 
 import config
 from gui.connector import Connector
-from gui.doctor_panel import DoctorPanel
 from gui.status_bar import SumpayStatusBar
 from gui import theme
 
@@ -40,29 +39,22 @@ class MainWindow(QMainWindow):
 
         central = QWidget()
         self.setCentralWidget(central)
-        layout = QHBoxLayout(central)
+        layout = QVBoxLayout(central)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        splitter.setHandleWidth(4)
-
         self._connector = Connector()
-        self._doctor    = DoctorPanel()
-
-        splitter.addWidget(self._connector)
-        splitter.addWidget(self._doctor)
-        splitter.setSizes([800, 480])
-
-        layout.addWidget(splitter)
+        layout.addWidget(self._connector)
 
     # ------------------------------------------------------------------ #
     # Public API called by main.py
     # ------------------------------------------------------------------ #
 
     def set_tts_worker(self, tts_worker) -> None:
-        """Pass the TTSWorker to the Connector so AudioScreen can trigger it."""
         self._connector.set_tts_worker(tts_worker)
+
+    def set_router(self, router) -> None:
+        self._connector.set_router(router)
 
     # ------------------------------------------------------------------ #
     # Slots wired by main.py
@@ -85,18 +77,7 @@ class MainWindow(QMainWindow):
     def on_tts_busy(self, busy: bool) -> None:
         self._status_bar.set_tts_busy(busy)
 
-    @pyqtSlot(str)
-    def on_partial_transcript(self, text: str) -> None:
-        self._doctor.update_partial(text)
-
-    @pyqtSlot(str)
-    def on_final_transcript(self, text: str) -> None:
-        self._doctor.update_final(text)
-
-    @pyqtSlot(str)
-    def on_play_video(self, path: str) -> None:
-        self._doctor.play_video(path)
-
     @pyqtSlot(float)
     def on_mic_level(self, level: float) -> None:
+        self._connector.on_mic_level(level)
         self._status_bar.set_mic_level(level)

@@ -1,14 +1,15 @@
 """ConfirmScreen — Screen 3: show accumulated text, Confirm / Retry / Edit."""
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
-    QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QTextEdit, QSizePolicy,
+    QHBoxLayout, QLabel, QSizePolicy, QTextEdit, QVBoxLayout, QWidget,
 )
 
 from gui import theme
-from gui.widgets.glass_card import GlassCard
 from gui.widgets.circle_button import CircleButton
+from gui.widgets.glass_card import GlassCard
+from gui.widgets.screen_header import ScreenHeader
 
 
 class ConfirmScreen(QWidget):
@@ -24,81 +25,80 @@ class ConfirmScreen(QWidget):
         self._editing = False
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(60, 32, 60, 50)
+        root.setContentsMargins(
+            theme.SCREEN_PADDING_H, theme.SCREEN_PADDING_TOP,
+            theme.SCREEN_PADDING_H, theme.SCREEN_PADDING_BOTTOM,
+        )
         root.setSpacing(0)
 
-        top_bar = QHBoxLayout()
-        back_btn = QPushButton("‹ Back")
-        back_btn.setFlat(True)
-        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        back_btn.setStyleSheet(
-            f"color: {theme.TEXT_HINT}; font-size: {theme.FONT_SIZE_HINT}px; "
-            "font-weight: 300; background: transparent; border: none;"
-        )
-        back_btn.clicked.connect(self.back)
-        top_bar.addWidget(back_btn)
-        top_bar.addStretch()
-        root.addLayout(top_bar)
-        root.addSpacing(18)
+        # ── Header ───────────────────────────────────────────────────── #
+        header = ScreenHeader(title="Is this all you want to share?")
+        header.back.connect(self.back)
+        root.addWidget(header)
+        root.addSpacing(theme.SPACE_LG)
 
-        # ── Header card ─────────────────────────────────────────────── #
-        header_card = GlassCard(deep=False)
-        header_layout = QVBoxLayout(header_card)
-        header_layout.setContentsMargins(28, 14, 28, 14)
-
-        header_lbl = QLabel("Is this all you want to share?")
-        header_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        header_lbl.setStyleSheet(
-            f"color: {theme.TEXT_PRIMARY}; "
-            "font-size: 20px; "
-            "font-weight: 400; "
-            "background: transparent;"
-        )
-        header_layout.addWidget(header_lbl)
-
-        root.addWidget(header_card)
-        root.addSpacing(16)
-
-        # ── Main row: text card + buttons ───────────────────────────── #
+        # ── Main row: text card + buttons ────────────────────────────── #
         content_row = QHBoxLayout()
-        content_row.setSpacing(30)
+        content_row.setSpacing(theme.SPACE_LG)
 
         # Text card
-        text_card = GlassCard(deep=True)
-        text_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        text_layout = QVBoxLayout(text_card)
-        text_layout.setContentsMargins(32, 32, 32, 32)
+        self._text_card = GlassCard(deep=True)
+        self._text_card.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        text_layout = QVBoxLayout(self._text_card)
+        text_layout.setContentsMargins(
+            theme.SPACE_LG, theme.SPACE_LG, theme.SPACE_LG, theme.SPACE_LG
+        )
+        text_layout.setSpacing(theme.SPACE_SM)
 
+        # Top row: editing pill (right-aligned, hidden by default)
+        top_row = QHBoxLayout()
+        top_row.setContentsMargins(0, 0, 0, 0)
+        top_row.addStretch()
+        self._editing_pill = QLabel("Editing")
+        self._editing_pill.setStyleSheet(
+            f"color: {theme.TEXT_PRIMARY}; "
+            f"font-size: {theme.FONT_SIZE_HINT}px; "
+            f"font-weight: {theme.WEIGHT_MEDIUM}; "
+            f"background-color: rgba(255, 159, 10, 36); "
+            "border-radius: 10px; "
+            "padding: 4px 10px; "
+            "letter-spacing: 1px;"
+        )
+        self._editing_pill.setVisible(False)
+        top_row.addWidget(self._editing_pill)
+        text_layout.addLayout(top_row)
+
+        # Body text (label OR edit, swapped)
         self._text_label = QLabel("")
         self._text_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self._text_label.setWordWrap(True)
         self._text_label.setStyleSheet(
             f"color: {theme.TEXT_PRIMARY}; "
-            "font-size: 25px; "
-            "font-weight: 300; "
+            f"font-size: {theme.FONT_SIZE_HEADING}px; "
+            f"font-weight: {theme.WEIGHT_LIGHT}; "
             "background: transparent;"
         )
 
         self._text_edit = QTextEdit()
         self._text_edit.setObjectName("editableText")
         self._text_edit.setVisible(False)
-        self._text_edit.setStyleSheet(
-            "QTextEdit#editableText { "
-            f"  color: {theme.TEXT_PRIMARY}; "
-            "  font-size: 25px; "
-            "  font-weight: 300; "
-            "  background: transparent; "
-            "  border: none; "
-            "  selection-background-color: rgba(0, 122, 255, 60); "
-            "}"
+
+        text_layout.addWidget(self._text_label, stretch=1)
+        text_layout.addWidget(self._text_edit, stretch=1)
+
+        # Caption row: char / word count
+        self._count_lbl = QLabel("")
+        self._count_lbl.setStyleSheet(
+            f"color: {theme.TEXT_HINT}; "
+            f"font-size: {theme.FONT_SIZE_HINT}px; "
+            f"font-weight: {theme.WEIGHT_REGULAR}; "
+            "background: transparent;"
         )
+        text_layout.addWidget(self._count_lbl, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        text_layout.addWidget(self._text_label)
-        text_layout.addWidget(self._text_edit)
-
-        # Buttons column
+        # Button column
         btn_col = QVBoxLayout()
-        btn_col.setSpacing(20)
+        btn_col.setSpacing(theme.SPACE_MD)
         btn_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self._confirm_btn = CircleButton("Confirm", variant="confirm")
@@ -113,7 +113,7 @@ class ConfirmScreen(QWidget):
         btn_col.addWidget(self._retry_btn)
         btn_col.addWidget(self._edit_btn)
 
-        content_row.addWidget(text_card, stretch=3)
+        content_row.addWidget(self._text_card, stretch=3)
         content_row.addLayout(btn_col, stretch=0)
 
         root.addLayout(content_row, stretch=1)
@@ -123,11 +123,32 @@ class ConfirmScreen(QWidget):
     def set_text(self, text: str) -> None:
         self._text = text
         self._editing = False
-        self._text_label.setText(text if text else "(no text captured)")
+        display = text if text else "(no text captured)"
+        self._text_label.setText(display)
         self._text_label.setVisible(True)
         self._text_edit.setVisible(False)
+        self._editing_pill.setVisible(False)
+        self._set_card_editing(False)
+        self._update_counts(text)
 
     # ------------------------------------------------------------------ #
+
+    def _update_counts(self, text: str) -> None:
+        text = text or ""
+        chars = len(text)
+        words = len([w for w in text.split() if w])
+        if chars == 0:
+            self._count_lbl.setText("")
+        else:
+            self._count_lbl.setText(
+                f"{chars} char{'s' if chars != 1 else ''} · "
+                f"{words} word{'s' if words != 1 else ''}"
+            )
+
+    def _set_card_editing(self, editing: bool) -> None:
+        self._text_card.setProperty("editing", "true" if editing else "false")
+        self._text_card.style().unpolish(self._text_card)
+        self._text_card.style().polish(self._text_card)
 
     def _on_confirm(self) -> None:
         if self._editing:
@@ -138,6 +159,8 @@ class ConfirmScreen(QWidget):
         self._editing = False
         self._text_label.setVisible(True)
         self._text_edit.setVisible(False)
+        self._editing_pill.setVisible(False)
+        self._set_card_editing(False)
         self.retry.emit()
 
     def _on_edit(self) -> None:
@@ -146,4 +169,10 @@ class ConfirmScreen(QWidget):
             self._text_edit.setPlainText(self._text)
             self._text_label.setVisible(False)
             self._text_edit.setVisible(True)
+            self._editing_pill.setVisible(True)
+            self._set_card_editing(True)
             self._text_edit.setFocus()
+            self._text_edit.textChanged.connect(self._on_edit_changed)
+
+    def _on_edit_changed(self) -> None:
+        self._update_counts(self._text_edit.toPlainText())

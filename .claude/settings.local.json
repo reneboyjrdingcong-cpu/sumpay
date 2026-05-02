@@ -24,7 +24,11 @@
       "Bash(python -c ' *)",
       "Bash(dir C:\\\\Users\\\\dingc\\\\Downloads\\\\ASL finbal test\\\\assets\\\\asl_videos\\\\ *)",
       "PowerShell(New-Item *)",
-      "Bash(python -m pytest tests/ -x --tb=short)"
+      "Bash(python -m pytest tests/ -x --tb=short)",
+      "Bash(git commit *)",
+      "PowerShell(tail *)",
+      "PowerShell(python -m pytest tests/ -q)",
+      "PowerShell(python -m py_compile gui/theme.py gui/widgets/screen_header.py gui/widgets/primary_button.py gui/screens/splash_screen.py gui/screens/camera_screen.py gui/screens/confirm_screen.py gui/screens/audio_screen.py gui/connector.py gui/main_window.py)"
     ]
   }
 }

@@ -81,19 +81,17 @@ QPushButton#circleBtnEdit {
 QPushButton#circleBtnEdit:hover   { background-color: #FFB340; }
 QPushButton#circleBtnEdit:pressed { background-color: #C87A00; }
 
-/* ── Continue button (camera screen) ──────────────────────────────── */
+/* ── Status pill (camera screen overlay) ──────────────────────────── */
 
-QPushButton#continueBtn {
-    background-color: transparent;
-    border: none;
-    color: @TEXT_SECONDARY@;
-    font-size: @FONT_SIZE_HINT@px;
-    font-weight: 400;
-    padding: 6px 12px;
+QWidget#statusPill {
+    background-color: @BG_GLASS_DEEP@;
+    border-radius: 14px;
 }
 
-QPushButton#continueBtn:hover {
-    color: @TEXT_PRIMARY@;
+/* ── Confirm screen text card — editing-state hairline ──────────── */
+
+QFrame#glassCardDeep[editing="true"] {
+    border: 1px solid @BORDER_HAIRLINE@;
 }
 
 /* ── Video canvas ─────────────────────────────────────────────────── */
@@ -111,7 +109,7 @@ QTextEdit#editableText {
     background-color: transparent;
     border: none;
     color: @TEXT_PRIMARY@;
-    font-size: 25px;
+    font-size: 24px;
     font-weight: 300;
     selection-background-color: rgba(0, 122, 255, 60);
 }

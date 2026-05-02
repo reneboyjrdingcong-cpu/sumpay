@@ -20,12 +20,39 @@ SHADOW_MEDIUM     = "rgba(0, 0, 0, 31)"
 RADIUS_CARD   = 24
 RADIUS_LARGE  = 32
 RADIUS_CIRCLE = 28
+RADIUS_PILL   = 999
+
+# 8 px spacing scale — every margin / gap / padding lands on this grid.
+SPACE_XS  = 8
+SPACE_SM  = 16
+SPACE_MD  = 24
+SPACE_LG  = 32
+SPACE_XL  = 48
+SPACE_2XL = 64
+
+# Unified screen layout (patient-side flow uses these everywhere)
+SCREEN_PADDING_H      = 48
+SCREEN_PADDING_TOP    = 24
+SCREEN_PADDING_BOTTOM = 40
+CONTENT_MAX_WIDTH     = 1100
 
 FONT_FAMILY        = '"SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif'
 FONT_SIZE_BODY     = 16
 FONT_SIZE_HINT     = 14
 FONT_SIZE_HEADER   = 28
 FONT_SIZE_GREETING = 56
+
+# Type scale (additive aliases + new sizes filling the gaps)
+FONT_SIZE_DISPLAY  = FONT_SIZE_GREETING   # 56 — splash hello
+FONT_SIZE_TITLE    = FONT_SIZE_HEADER     # 28 — large screen titles
+FONT_SIZE_HEADING  = 24                   # body content on confirm / audio
+FONT_SIZE_BODY_LG  = 20                   # subtitles, screen titles inline
+
+# Weight tokens — name what is already in use
+WEIGHT_LIGHT   = 300
+WEIGHT_REGULAR = 400
+WEIGHT_MEDIUM  = 500
+WEIGHT_SEMI    = 600
 
 # Landmark overlay — kept visible against white background
 LANDMARK_HAND       = "#1D1D1F"

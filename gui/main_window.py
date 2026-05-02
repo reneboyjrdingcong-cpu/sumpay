@@ -13,14 +13,15 @@ from gui import theme
 def _load_stylesheet() -> str:
     qss = config.STYLES_QSS.read_text(encoding="utf-8")
     subs = {
-        "@BG_PRIMARY@":    theme.BG_PRIMARY,
-        "@BG_GLASS@":      theme.BG_GLASS,
-        "@BG_GLASS_DEEP@": theme.BG_GLASS_DEEP,
-        "@TEXT_PRIMARY@":  theme.TEXT_PRIMARY,
-        "@TEXT_SECONDARY@": theme.TEXT_SECONDARY,
-        "@FONT_FAMILY@":   theme.FONT_FAMILY,
-        "@FONT_SIZE_BODY@": str(theme.FONT_SIZE_BODY),
-        "@FONT_SIZE_HINT@": str(theme.FONT_SIZE_HINT),
+        "@BG_PRIMARY@":      theme.BG_PRIMARY,
+        "@BG_GLASS@":        theme.BG_GLASS,
+        "@BG_GLASS_DEEP@":   theme.BG_GLASS_DEEP,
+        "@BORDER_HAIRLINE@": theme.BORDER_HAIRLINE,
+        "@TEXT_PRIMARY@":    theme.TEXT_PRIMARY,
+        "@TEXT_SECONDARY@":  theme.TEXT_SECONDARY,
+        "@FONT_FAMILY@":     theme.FONT_FAMILY,
+        "@FONT_SIZE_BODY@":  str(theme.FONT_SIZE_BODY),
+        "@FONT_SIZE_HINT@":  str(theme.FONT_SIZE_HINT),
     }
     for token, value in subs.items():
         qss = qss.replace(token, value)

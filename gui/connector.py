@@ -188,6 +188,7 @@ class Connector(QStackedWidget):
     def _go_audio(self, text: str) -> None:
         self._last_tts_text = text
         self._audio.reset()
+        self._audio.set_text(text)
         self.setCurrentIndex(_AUDIO)
         if self._tts_worker and text:
             self._tts_worker.speak(text)

@@ -22,7 +22,9 @@
       "Bash(python -m pytest tests/ -q)",
       "Bash(python -c \"import config; print\\(config.HAND_LANDMARKER_TASK\\); print\\(config.FACE_LANDMARKER_TASK\\); print\\(config.VOSK_MODEL_DIR\\)\")",
       "Bash(python -c ' *)",
-      "Bash(dir C:\\\\Users\\\\dingc\\\\Downloads\\\\ASL finbal test\\\\assets\\\\asl_videos\\\\ *)"
+      "Bash(dir C:\\\\Users\\\\dingc\\\\Downloads\\\\ASL finbal test\\\\assets\\\\asl_videos\\\\ *)",
+      "PowerShell(New-Item *)",
+      "Bash(python -m pytest tests/ -x --tb=short)"
     ]
   }
 }

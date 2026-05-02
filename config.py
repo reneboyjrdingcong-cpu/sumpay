@@ -69,6 +69,12 @@ KEYWORD_MAP: dict[str, str] = {
     "follow up": "follow_up.mp4",
     "everything is okay": "okay.mp4",
     "you are okay": "okay.mp4",
+    "unusual odor": "unusual_odor_discharge.mp4",
+    "odor or discharge": "unusual_odor_discharge.mp4",
+    "noticed a discharge": "unusual_odor_discharge.mp4",
+    "pain reliever": "pain_reliever_daily.mp4",
+    "pain reliever once a day": "pain_reliever_daily.mp4",
+    "take this pain reliever": "pain_reliever_daily.mp4",
 }
 
 INITIAL_PHRASES: list[str] = [

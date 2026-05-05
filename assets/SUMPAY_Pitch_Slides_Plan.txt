@@ -1,0 +1,454 @@
+================================================================
+SUMPAY PITCH DECK — SLIDE PLAN (Text + Image Notes)
+Sign-language Upholding for Medical Privacy and Autonomy of Young-women
+Rene Boy Dingcong · Nathan Casas · Jedidiah Rollinas
+Mindanao State University – Iligan Institute of Technology
+================================================================
+
+
+----------------------------------------------------------------
+SLIDE 1 — TITLE SLIDE
+----------------------------------------------------------------
+Headline:
+  SUMPAY
+  Sign-language Upholding for Medical Privacy and Autonomy of Young-women
+
+Subtext:
+  Rene Boy Dingcong · Nathan Casas · Jedidiah Rollinas
+  Mindanao State University – Iligan Institute of Technology
+
+Bottom tag:
+  An offline edge-AI clinical communication dashboard for Deaf women
+  in OB-GYN and GAD settings
+
+[IMAGE NOTE]
+Full-bleed background photo of a Deaf woman signing in a clinic or
+hospital hallway. Overlay a dark semi-transparent layer to keep text
+readable. Place the MSU-IIT logo bottom-right.
+
+
+----------------------------------------------------------------
+SLIDE 2 — INTRODUCTION: THE COMMUNITY (Visual-heavy)
+Template section: INTRODUCTION
+----------------------------------------------------------------
+Headline:
+  Deaf Women in the Philippine Healthcare System
+
+Three stat blocks (large numbers, short labels):
+
+  1.78 Million
+  Filipinos with functional hearing difficulty
+  (Philippine Statistics Authority, 2023)
+
+  ~70%
+  of Deaf patients report using family members
+  as interpreters during medical visits
+
+  0
+  professional FSL interpreters available in most
+  community health centers
+
+One-liner below:
+  In OB-GYN clinics and GAD offices, this silence is not just
+  inconvenient — it is a rights violation.
+
+[IMAGE NOTE]
+Split layout. Left side: photo of a crowded Philippine rural clinic
+waiting area. Right side: the three stat blocks on dark cards.
+Use bold green for the large numbers to draw attention.
+
+
+----------------------------------------------------------------
+SLIDE 3 — INTRODUCTION: THE REALITY IN THE CLINIC
+Template section: INTRODUCTION
+----------------------------------------------------------------
+Headline:
+  What Actually Happens During a Consultation
+
+Two-column contrast table:
+
+  WITHOUT SUMPAY                    WITH SUMPAY
+  ---------------------------       ---------------------------
+  Patient relies on family          Patient communicates directly
+  member to interpret               and privately
+
+  Sensitive information withheld    Full symptoms disclosed
+  out of shame                      without a third party
+
+  Doctor's instructions             Doctor's instructions shown
+  misunderstood or filtered         as sign language video
+
+  No record of consent              Confirmed, text-based
+  or communication                  interaction log
+
+Pull quote (large italic text):
+  "Writing takes too long, and having my family interpret makes me
+  feel shy — I just keep it to myself."
+  — Interview respondent, SMC-Iligan Deaf Community Organization
+
+[IMAGE NOTE]
+Background: blurred photo of a patient-doctor consultation.
+The quote should stand out in a contrasting card — white text
+on a dark card overlay.
+
+
+----------------------------------------------------------------
+SLIDE 4 — PROBLEM STATEMENT
+Template section: PROBLEM STATEMENT AND OBJECTIVES
+----------------------------------------------------------------
+Headline:
+  The Problem
+
+Three problem pillars (icon + short statement each):
+
+  [LOCK ICON]  PRIVACY
+  Deaf women are forced to expose sensitive reproductive and
+  GBV-related information to family members acting as untrained
+  interpreters.
+
+  [SPEECH BUBBLE ICON]  COMPREHENSION
+  Doctors' written notes and verbal instructions are frequently
+  misunderstood without sign language translation.
+
+  [SCALES ICON]  RIGHTS
+  This practice violates the right to informed consent and bodily
+  autonomy guaranteed under RA 9710 (Magna Carta of Women) and
+  RA 10354 (Reproductive Health Act).
+
+[IMAGE NOTE]
+Three icon cards on a dark background. Use simple icons:
+padlock, speech bubble, scales of justice. Minimal text,
+high visual impact.
+
+
+----------------------------------------------------------------
+SLIDE 5 — OBJECTIVES
+Template section: PROBLEM STATEMENT AND OBJECTIVES
+----------------------------------------------------------------
+Headline:
+  What SUMPAY Aims to Do
+
+Numbered objectives:
+
+  1. Develop a patient-side ASL recognition system that translates
+     signing into text and spoken speech — no interpreter needed.
+
+  2. Develop a clinician-side speech-to-ASL response system that
+     converts spoken medical instructions into pre-recorded sign
+     language videos.
+
+  3. Integrate both into a fully offline, privacy-compliant
+     dual-interface dashboard deployable on standard clinic tablets.
+
+  4. Evaluate the system for usability and recognition accuracy
+     with Deaf female participants and OB-GYN clinicians.
+
+Tagline (centered, large):
+  One device. Two interfaces. Zero cloud.
+
+[IMAGE NOTE]
+Clean numbered list layout. Thin green accent line on the left
+side of each item. Small system logo top-right. No photo needed.
+
+
+----------------------------------------------------------------
+SLIDE 6 — METHODS: SYSTEM ARCHITECTURE
+Template section: METHODS TO BE USED IN THIS RESEARCH
+----------------------------------------------------------------
+Headline:
+  How the System Works — A Dual Pipeline
+
+Center flow diagram (two columns):
+
+  PATIENT SIDE                      CLINICIAN SIDE
+  ----------------                  ----------------
+  [Camera Icon]                     [Microphone Icon]
+  Tablet Camera                     Microphone
+       |                                 |
+  MediaPipe                         Vosk STT
+  (hand + face tracking)           (offline, 16 kHz)
+       |                                 |
+  178-dim feature vector            Keyword Router
+  per camera frame                 (phrase matching)
+       |                                 |
+  ASL Transformer                   ASL Video Clip
+  (60-frame window)                plays on screen
+       |
+  Patient confirms text
+       |
+  pyttsx3 TTS --> Doctor hears
+
+Bottom banner:
+  All processing runs locally. No internet. No cloud.
+  No data leaves the device.
+
+[IMAGE NOTE]
+Recreate as a proper two-column flow diagram with arrow connectors.
+Green color for patient side, blue for clinician side. Place a
+small hospital icon in the center between the two flows.
+
+
+----------------------------------------------------------------
+SLIDE 7 — METHODS: PHASE 1 — PATIENT SIDE
+Template section: METHODS TO BE USED IN THIS RESEARCH
+----------------------------------------------------------------
+Headline:
+  Phase 1: The Patient Signs — The System Speaks
+
+Three-step visual flow:
+
+  STEP 1 — CAPTURE
+  MediaPipe detects up to 2 hands (21 landmarks each) and
+  52 facial expression scores per frame.
+  → 178-dimensional feature vector, every frame
+
+  STEP 2 — CLASSIFY
+  A rolling 2-second window (60 frames) is fed into a
+  lightweight Transformer encoder.
+  → Predicts signed phrase with confidence score
+
+  STEP 3 — CONFIRM & SPEAK
+  Patient reviews the recognized text, confirms, then
+  pyttsx3 speaks it aloud to the clinician.
+  → No accidental speech. Patient is always in control.
+
+Key spec callout box:
+  4 attention heads  |  3 encoder layers  |  ~358K parameters
+  Runs on CPU  |  No GPU required
+
+[IMAGE NOTE]
+Three horizontal cards with icons: (1) camera/hand icon,
+(2) brain/network icon, (3) speaker/checkmark icon.
+Thin connecting arrow runs between them.
+
+
+----------------------------------------------------------------
+SLIDE 8 — METHODS: PHASE 2 — CLINICIAN SIDE
+Template section: METHODS TO BE USED IN THIS RESEARCH
+----------------------------------------------------------------
+Headline:
+  Phase 2: The Doctor Speaks — The Patient Sees
+
+Two-step visual flow:
+
+  STEP 1 — TRANSCRIBE
+  Doctor speaks naturally. Vosk (offline Kaldi ASR, ~50 MB)
+  transcribes speech in real time at 16 kHz. Live transcript
+  appears on screen as they speak.
+
+  STEP 2 — ROUTE TO SIGN
+  A keyword router scans the transcript using whole-word
+  pattern matching — longest phrase wins — and triggers
+  the corresponding pre-recorded ASL video clip on the
+  patient's screen.
+
+Sample keyword mapping:
+
+  Doctor says...                    Patient sees...
+  ----------------------------      ----------------------------
+  "Take your medicine"              take_medicine.mp4
+  "Pain reliever once a day"        pain_reliever_daily.mp4
+  "Unusual odor or discharge"       unusual_odor_discharge.mp4
+
+[IMAGE NOTE]
+Two-step horizontal layout. Left card: microphone + waveform
+graphic. Right card: tablet screen with a signing figure video
+placeholder. Right-pointing arrow between them.
+
+
+----------------------------------------------------------------
+SLIDE 9 — PROPOSED SOLUTION: THE PROTOTYPE
+Template section: PROPOSED SOLUTION
+----------------------------------------------------------------
+Headline:
+  SUMPAY — What We Built
+
+Left column (what the prototype does):
+  - 9-screen state machine managing patient and clinician flows
+  - 4 background worker threads — fully thread-safe GUI
+  - Trained on 4 ASL phrase classes, 120 samples total
+  - 4 stochastic augmentations for handedness and tempo robustness
+  - Fully offline: MediaPipe, PyTorch, Vosk, pyttsx3
+  - Built with Python 3.11 + PyQt6
+  - Degrades gracefully if any model file is missing
+
+Right column (how we will validate it):
+  - Recognition accuracy target: >= 80% before user testing
+  - System Usability Scale (SUS) with:
+      Deaf female participants  (target n >= 5)
+      OB-GYN / GAD clinicians   (target n >= 3)
+  - Target SUS score: >= 68 (above-average usability benchmark)
+
+Bottom statement:
+  The architecture is modular — adding a new phrase requires only
+  30 new recorded samples and a single retraining run.
+
+[IMAGE NOTE]
+Split layout. Left: screenshot or mockup of the app CameraScreen
+showing live landmark overlay and translation card. Right: the
+spec and validation bullet points on a dark card.
+
+
+----------------------------------------------------------------
+SLIDE 10 — POSTER: PATIENT INTERACTION FLOW
+Template section: POSTER
+----------------------------------------------------------------
+Headline:
+  How the Patient Uses SUMPAY
+
+Five-screen walkthrough (left to right):
+
+  SCREEN 1: Splash Screen
+  "Tap to start"
+  Caption: App launches to a clean splash — no login, no account needed.
+
+  SCREEN 2: Role Screen
+  "I am a..." [Patient button]
+  Caption: Patient selects their role.
+
+  SCREEN 3: Camera Screen
+  Signs phrase. Live camera + landmark overlay shown.
+  Translation card builds up below the camera feed.
+  Status pill: "Listening..." / "Signing..."
+  Caption: Signs naturally in front of the camera. Recognized text
+  builds up below in real time.
+
+  SCREEN 4: Confirm Screen
+  Reviews assembled message text.
+  Buttons: [Retry]  [Confirm]
+  Caption: Reviews the full message. Can retry if a phrase was wrong.
+
+  SCREEN 5: Audio Screen
+  Text displayed. TTS speaks aloud to doctor.
+  Buttons: [Replay]  [Done]
+  Caption: Text is read aloud to the clinician. Patient stays in
+  control throughout.
+
+[IMAGE NOTE]
+Use actual screenshots of the app screens arranged in a horizontal
+strip with a numbered caption below each. This is the most important
+visual slide — make it look like a real product.
+
+
+----------------------------------------------------------------
+SLIDE 11 — POSTER: CLINICIAN INTERACTION FLOW
+Template section: POSTER
+----------------------------------------------------------------
+Headline:
+  How the Clinician Uses SUMPAY
+
+Five-screen walkthrough (left to right):
+
+  SCREEN 1: Role Screen
+  "I am a..." [Doctor button]
+  Caption: Clinician selects their role.
+
+  SCREEN 2: Doctor Choice Screen
+  Buttons: [Record Voice]  [Type Manually]
+  Caption: Chooses to record voice or type manually.
+
+  SCREEN 3: Doctor Record Screen
+  Live waveform animation. Partial transcript appears as doctor speaks.
+  Button: [Stop]
+  Caption: Speaks normally — live partial transcript appears on screen.
+
+  SCREEN 4: Doctor Confirm Screen
+  Transcribed text shown in editable field.
+  Buttons: [Retry]  [Confirm]
+  Caption: Reviews and edits the transcribed instruction before sending.
+
+  SCREEN 5: Doctor Playback Screen
+  Doctor's transcribed text shown above.
+  ASL video clip plays below.
+  Buttons: [Replay]  [Done]
+  Caption: The matched ASL video plays on the patient's side. Doctor
+  sees it too for verification.
+
+Callout box:
+  No sign language training required for the clinician.
+  The system handles the translation.
+
+[IMAGE NOTE]
+Same horizontal strip layout as Slide 10. Use a blue accent color
+for the clinician-side screens to visually distinguish the two flows.
+If app screenshots are not ready, use labeled wireframe mockups.
+
+
+----------------------------------------------------------------
+SLIDE 12 — CONCLUSION & NEXT STEPS
+----------------------------------------------------------------
+Headline:
+  A Privacy-First Bridge Between Deaf Patients and Their Doctors
+
+Three takeaway columns:
+
+  [BRAIN ICON]  WHAT WE PROVED
+  A fully offline, dual-interface ASL communication dashboard is
+  technically feasible on consumer-grade clinic hardware, with
+  no cloud dependency.
+
+  [HANDSHAKE ICON]  WHO IT'S FOR
+  Deaf Filipino women in OB-GYN and GAD settings where privacy
+  and informed consent are non-negotiable — and currently unmet.
+
+  [ARROW ICON]  WHAT'S NEXT
+  - Expand vocabulary to 12 phrases from multiple signers
+  - Transition from ASL to Filipino Sign Language (FSL)
+  - SUS usability evaluation with SMC-Iligan community
+  - Deploy on split dual-tablet setup for real clinical use
+  - Add visual consent prompts (YES/NO overlays) for GBV reporting
+
+Closing line (large, centered):
+  "Sign language is not a workaround. It is the language.
+   SUMPAY treats it that way."
+
+[IMAGE NOTE]
+Minimal slide. Dark background. Closing quote centered in large type
+with a thin green underline. MSU-IIT logo and project name
+bottom-left. Optional: darkened background photo of Iligan City
+skyline or a clinic exterior.
+
+
+================================================================
+SLIDE SUMMARY TABLE
+================================================================
+
+#    Slide Title                              Template Section
+---  ---------------------------------------  --------------------------------
+1    Title Slide                              --
+2    The Community (stats + photo)            INTRODUCTION
+3    The Reality in the Clinic (contrast)     INTRODUCTION
+4    Problem Statement (3 pillars)            PROBLEM STATEMENT & OBJECTIVES
+5    Objectives (4 items)                     PROBLEM STATEMENT & OBJECTIVES
+6    System Architecture (dual pipeline)      METHODS
+7    Phase 1 — Patient Side (3-step)          METHODS
+8    Phase 2 — Clinician Side (2-step)        METHODS
+9    The Prototype (specs + evaluation)       PROPOSED SOLUTION
+10   Patient Interaction Flow (5 screens)     POSTER
+11   Clinician Interaction Flow (5 screens)   POSTER
+12   Conclusion & Next Steps                  --
+
+================================================================
+DESIGN NOTES
+================================================================
+
+Color palette (matches the app's own UI):
+  Background:   #1C1C1E  (near-black)
+  Primary text: #FFFFFF
+  Accent green: #34C759  (for stats, highlights, confirm actions)
+  Accent blue:  #0A84FF  (for clinician-side elements)
+  Hint/muted:   #8E8E93
+
+Font suggestions:
+  Headlines:    SF Pro Display Bold  (or Inter Bold)
+  Body text:    SF Pro Text Regular  (or Inter Regular)
+  Stat numbers: SF Pro Display Heavy (very large, green)
+
+Most important slides to get visually right:
+  Slide 2  — community statistics (sets emotional stakes)
+  Slide 10 — patient interaction (shows real product value)
+  Slide 11 — clinician interaction (shows ease of use)
+
+================================================================
+END OF SLIDE PLAN
+================================================================

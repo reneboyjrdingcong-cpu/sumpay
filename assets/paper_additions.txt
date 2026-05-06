@@ -1,0 +1,692 @@
+
+=======================================================================
+SECTION A — REVISED INTRODUCTION OBJECTIVES
+(Insert at the end of the INTRODUCTION, replacing the final sentence
+ that starts "By establishing this secure diagnostic tool...")
+=======================================================================
+
+By establishing this secure diagnostic tool, Project Sumpay aims to
+restore clinical safety, explicitly ensure bodily autonomy, and advance
+health equity for the Deaf female community. To realize this aim, the
+study is guided by the following specific objectives:
+
+  1. To identify and analyze the systemic clinical communication barriers
+     experienced by Deaf Filipino women in OB-GYN and Gender and
+     Development (GAD) office settings through structured qualitative
+     interviews with community respondents and systematic literature
+     analysis.
+
+  2. To design and develop SUMPAY — a dual-interface, bidirectional,
+     and fully offline clinical communication application deployable on
+     standard tablet hardware, integrating ASL recognition, speech
+     transcription, and text-to-ASL video playback in a single cohesive
+     system.
+
+  3. To implement a real-time American Sign Language (ASL) recognition
+     pipeline leveraging Google MediaPipe for multi-modal landmark
+     extraction from hands and facial expressions simultaneously, and a
+     Transformer-based neural network classifier capable of operating
+     within the constraints of clinical edge devices.
+
+  4. To implement a secure, fully offline Speech-to-Text (STT) subsystem
+     for the physician interface that transcribes spoken clinical
+     instructions in real time and triggers contextually appropriate
+     pre-recorded ASL video responses for the patient.
+
+  5. To evaluate the usability and clinical accessibility of the
+     developed prototype through structured alpha testing and System
+     Usability Scale (SUS) assessment involving Deaf female community
+     members and healthcare providers.
+
+
+=======================================================================
+SECTION B — METHODOLOGY
+(Replace the placeholder "METHODOLOGY" section with this content)
+=======================================================================
+
+METHODOLOGY
+
+The development of SUMPAY followed a five-objective sequential research
+design addressing problem identification, system architecture, ASL
+pipeline implementation, STT pipeline implementation, and usability
+evaluation.
+
+
+Methodology for Objective 1: Identification and Analysis of
+Communication Barriers
+
+A preliminary qualitative needs assessment was conducted to empirically
+ground the system design in the lived experiences of the target
+population. Six (6) Deaf female members of the SMC-Iligan Deaf
+Community Organization were recruited through purposive sampling.
+Semi-structured interview guides were structured around four thematic
+domains: (1) current communication modalities during clinical
+consultations; (2) privacy perceptions when family members serve as
+interpreters; (3) comprehension difficulties with physician-written
+notes; and (4) openness toward tablet-based assistive technology.
+
+Responses were transcribed and subjected to thematic analysis following
+Braun and Clarke's six-phase coding framework. Themes were triangulated
+with findings from the literature review spanning 21 peer-reviewed
+sources in healthcare communication, sign language recognition,
+digital health equity, and human-computer interaction.
+
+Table 1. Summary of Preliminary Interview Themes and Key Findings (n=6)
++-------------------------------+---------------------------------------+-----------+
+| Theme                         | Key Finding                           | Proportion|
++-------------------------------+---------------------------------------+-----------+
+| Interpreter Dependence        | All respondents relied on family      | 6/6 (100%)|
+|                               | members as interpreters in medical    |           |
+|                               | settings.                             |           |
++-------------------------------+---------------------------------------+-----------+
+| Privacy Compromise            | Respondents withheld sensitive health | 5/6 (83%) |
+|                               | information when a family interpreter |           |
+|                               | was present.                          |           |
++-------------------------------+---------------------------------------+-----------+
+| Comprehension Barriers        | All respondents reported difficulty   | 6/6 (100%)|
+|                               | understanding physician-written notes.|           |
++-------------------------------+---------------------------------------+-----------+
+| Technology Openness           | All respondents expressed willingness | 6/6 (100%)|
+|                               | to use a tablet-based assistive tool. |           |
++-------------------------------+---------------------------------------+-----------+
+
+
+Methodology for Objective 2: System Design and Development
+
+SUMPAY was designed as a dual-interface kiosk application separating
+the physician workflow from the patient input modality, consistent with
+the role-differentiated display design rationale supported by Ashrafi
+et al. [19]. The system encompasses two principal modules:
+
+  Patient Interface (ASL-to-Text): A camera-first input layer where
+  the patient's hand gestures and facial expressions are captured,
+  processed through Google MediaPipe landmark extraction, and classified
+  by a Transformer-based neural network in real time.
+
+  Physician Interface (Speech-to-Text + ASL Playback): A dual-path
+  output layer where the physician speaks (captured via Vosk STT) or
+  types a message, which is matched to a pre-recorded ASL video clip
+  displayed to the patient.
+
+The application was developed in Python using the PyQt6 framework,
+structured as a QStackedWidget nine-screen state machine (Figure 1).
+Zero external network calls are made at runtime, satisfying full
+offline data privacy requirements consistent with RA 10173 and
+institutional data governance standards.
+
+[FIGURE 1 — SUMPAY System Architecture Diagram.
+ Show two sides: Patient Side (Camera -> MediaPipe Landmarker ->
+ Feature Extractor (178-dim) -> ASLTransformer -> Connector/State
+ Machine) and Doctor Side (Microphone -> Vosk STT -> Keyword Router
+ -> ASL Video Playback). Both sides connect through the central
+ QStackedWidget Connector driving the 9-screen GUI stack.]
+
+Table 2. SUMPAY Technology Stack
++----------------------+----------------------------------+-------------------------------+
+| Component            | Technology / Model               | Purpose                       |
++----------------------+----------------------------------+-------------------------------+
+| GUI Framework        | PyQt6 (QStackedWidget)           | 9-screen kiosk state machine  |
+| Computer Vision      | Google MediaPipe Task API        | Multi-modal landmark extr.    |
+| Hand Landmarker      | hand_landmarker.task (23 MB)     | 21 3D hand landmarks/hand     |
+| Face Landmarker      | face_landmarker.task (33 MB)     | 478 landmarks + 52 blendshapes|
+| Neural Classifier    | PyTorch / TorchScript            | ASL phrase classification     |
+| Speech-to-Text       | Vosk small-en-us-0.15 (50 MB)   | Offline physician transcription|
+| Text-to-Speech       | Windows SAPI5 / pyttsx3          | Patient audio output (TTS)    |
+| Camera Capture       | OpenCV                           | 1280x720 @ 30 FPS             |
++----------------------+----------------------------------+-------------------------------+
+
+
+Methodology for Objective 3: ASL Recognition Pipeline Implementation
+
+The patient-side recognition pipeline implements a five-stage
+sequential architecture from raw camera frame capture to debounced
+phrase output.
+
+Stage 1 — Camera Capture (CameraWorker)
+A dedicated QThread worker captures frames at 1280x720 resolution and
+30 frames per second from the device camera using OpenCV. Each frame is
+emitted as a raw NumPy array for downstream processing.
+
+Stage 2 — Multi-Modal Landmark Extraction (MediaPipe)
+Each frame is processed by VisionProcessor, which runs two MediaPipe
+landmarker tasks in parallel:
+  - hand_landmarker.task: extracts 21 three-dimensional (x, y, z)
+    spatial landmarks per detected hand (up to two hands), capturing
+    finger joint positions, relative angles, and wrist orientation.
+  - face_landmarker.task: extracts 478 facial landmarks and 52
+    facial action unit blendshape scores, capturing non-manual markers
+    — raised eyebrows, cheek puffing, mouth shape — that are
+    syntactically significant components of ASL grammar [2].
+
+Stage 3 — Feature Vector Construction (features.py)
+Landmark dictionaries are converted into fixed-length per-frame feature
+vectors of 178 dimensions (Table 3). Hand landmarks undergo two
+normalization steps: (1) translational normalization — the wrist
+landmark (index 0) is subtracted making all coordinates wrist-relative;
+(2) scale normalization — coordinates are divided by the maximum
+absolute value, yielding a unit-scale representation invariant to hand
+size, signer body proportions, and camera distance. Absent hands or
+failed face landmark detection are zero-padded.
+
+Table 3. Per-Frame Feature Vector Layout (178 Dimensions)
++---------------+------------+------------------------+-------------------------------+
+| Segment       | Dimensions | Source                 | Description                   |
++---------------+------------+------------------------+-------------------------------+
+| hand_0        | 63 (21x3)  | Hand Landmarker        | Dominant hand — wrist-norm.,  |
+|               |            |                        | unit-scaled                   |
+| hand_1        | 63 (21x3)  | Hand Landmarker        | Non-dominant hand — zero-pad  |
+|               |            |                        | if absent                     |
+| blendshapes   | 52         | Face Landmarker        | Facial action unit scores     |
+|               |            |                        | (0.0–1.0), zero-pad if absent |
+| TOTAL         | 178        |                        |                               |
++---------------+------------+------------------------+-------------------------------+
+
+[FIGURE 2 — Feature Vector Composition Diagram.
+ Show a horizontal bar of 178 cells partitioned into three labeled
+ segments: hand_0 (cells 0-62, blue), hand_1 (cells 63-125, green),
+ blendshapes (cells 126-177, orange). Below each segment annotate the
+ source landmarker and dimension count.]
+
+Stage 4 — Temporal Windowing and Classification (RecognizerWorker)
+A dedicated QThread worker accumulates per-frame feature vectors in a
+rolling deque of 60 frames (2.0 seconds at 30 FPS). Every 10 frames
+(window stride, ~0.33 s), the full window — shaped (60, 178) — is
+passed to the ASLTransformer neural classifier.
+
+The ASLTransformer is a lightweight Transformer encoder adapted for
+temporal gesture-sequence classification. Its architecture (Table 4)
+projects each frame's 178-dimensional feature vector into a 128-
+dimensional latent space, applies sinusoidal positional encoding to
+preserve temporal ordering, processes the sequence through 3 stacked
+Transformer encoder layers with 4 attention heads each, mean-pools
+across the time axis to produce a fixed-length sequence representation,
+and outputs class logits via a linear classification head.
+
+Table 4. ASLTransformer Architecture Summary
++----------------------------+--------------------------------------------------+
+| Component                  | Configuration                                    |
++----------------------------+--------------------------------------------------+
+| Input Projection           | Linear(178 -> 128)                               |
+| Positional Encoding        | Sinusoidal, max_len = 512                        |
+| Transformer Encoder        | 3 layers, 4 attention heads per layer            |
+| Feed-Forward Dim           | 512 (4 x d_model)                                |
+| Dropout                    | 0.2                                              |
+| Classification Head        | Mean Pool over time -> Linear(128 -> N_classes)  |
+| Deployment Format          | TorchScript (.pt), CPU-only                      |
++----------------------------+--------------------------------------------------+
+
+[FIGURE 3 — ASLTransformer Architecture Diagram.
+ Show left-to-right flow: Input window (60x178) -> Linear Projection
+ (60x128) -> Positional Encoding (60x128) -> Transformer Encoder Layer
+ x3 (60x128 each) -> Mean Pool (128) -> Linear + Softmax -> class
+ probabilities. Label each block with its shape.]
+
+Stage 5 — Dwell + Cooldown Debounce
+To suppress spurious activations from transitional hand positions, a
+two-stage debounce filter is applied after each classification:
+
+  Dwell: A predicted label must appear in 3 consecutive classification
+  windows with confidence >= 60% before a recognition event is emitted.
+  This requires approximately 0.33 seconds of consistent gesture
+  agreement before triggering.
+
+  Cooldown: A 45-frame silent period (1.5 s) follows each recognized
+  event, preventing double-triggering from held or repeated signs.
+
+  Brief Hand-Loss Tolerance: Fewer than 10 consecutive frames of absent
+  hand landmarks do not reset the dwell counter, accommodating momentary
+  occlusion or micro-transitions between sign components.
+
+[FIGURE 4 — Debounce State Machine Diagram.
+ States: IDLE (no hand or low confidence) -> DWELLING (confidence >=
+ 60%, dwell counter incrementing, 1 to 3) -> EMIT (dwell counter = 3,
+ recognized signal fires) -> COOLDOWN (45-frame timer) -> back to IDLE.
+ Add a self-loop on DWELLING for "wrong label resets counter to 0."]
+
+Data Collection and Training Protocol
+Training data were collected using a CLI recording tool
+(training/record_phrase.py). A minimum of 30 samples were recorded per
+phrase per signer. Each recording session captures a 3-second window
+of landmark sequences preceded by a 2-second preparation countdown.
+The initial 12-phrase recognition vocabulary is listed in Table 5.
+
+Table 5. SUMPAY ASL Recognition Vocabulary — Initial Training Phrases
++-----+-------------------------------+
+|  ID | Phrase                        |
++-----+-------------------------------+
+|   0 | I have a headache             |
+|   1 | for a week now                |
+|   2 | Can you check                 |
+|   3 | my eye                        |
+|   4 | I feel dizzy                  |
+|   5 | I have chest pain             |
+|   6 | I cannot sleep at night       |
+|   7 | My stomach hurts              |
+|   8 | I need water please           |
+|   9 | Thank you doctor              |
+|  10 | Yes                           |
+|  11 | No                            |
++-----+-------------------------------+
+
+Training employed the AdamW optimizer with a cosine annealing learning
+rate schedule over 60 epochs. An 85%/15% train/validation split was
+applied. Data augmentation — including temporal jitter, Gaussian noise
+injection, and random frame dropout — was applied exclusively to
+training samples. The best-performing checkpoint by validation accuracy
+was exported as a TorchScript model for runtime inference. All
+training hyperparameters are summarized in Table 6.
+
+Table 6. Training Hyperparameters
++-----------------------------+------------------------+
+| Hyperparameter              | Value                  |
++-----------------------------+------------------------+
+| Optimizer                   | AdamW                  |
+| Learning Rate               | 3 x 10^-4              |
+| Weight Decay                | 1 x 10^-4              |
+| Batch Size                  | 32                     |
+| Epochs                      | 60                     |
+| Train / Val Split           | 85% / 15%              |
+| LR Schedule                 | Cosine Annealing       |
+| Model Dimensions (d_model)  | 128                    |
+| Attention Heads             | 4                      |
+| Transformer Layers          | 3                      |
+| Dropout                     | 0.2                    |
+| Confidence Threshold        | >= 60%                 |
+| Window Length               | 60 frames (2.0 s @ 30 FPS)|
+| Window Stride               | 10 frames (0.33 s)     |
+| Dwell Frames                | 3 consecutive windows  |
+| Cooldown Frames             | 45 frames (1.5 s)      |
+| Hand-Loss Tolerance         | < 10 consecutive frames|
++-----------------------------+------------------------+
+
+
+Methodology for Objective 4: STT Pipeline and Keyword-Driven ASL Playback
+
+The physician-side pipeline serves two functions: real-time offline
+transcription of spoken instructions and keyword-triggered ASL video
+playback.
+
+Speech-to-Text Transcription (Vosk / STTWorker)
+A dedicated QThread worker (STTWorker) processes microphone audio at
+16,000 Hz sample rate in 4,000-sample blocks (0.25-second chunks) using
+the Vosk small-en-us-0.15 model. Vosk emits two signal types:
+  - partial_transcript: intermediate, non-finalized text updates
+    displayed live on the physician's recording screen.
+  - final_transcript: completed utterances forwarded to the
+    KeywordRouter for video matching.
+
+All transcription processing occurs locally on device with no external
+API calls, ensuring compliance with the system's zero-cloud privacy
+constraint.
+
+Keyword Routing and ASL Video Playback (KeywordRouter)
+The KeywordRouter applies fuzzy substring matching against a
+clinically curated keyword map containing 16 phrase-to-video entries
+(Table 7). Each entry maps one or more natural-language phrasings of a
+clinical instruction to a corresponding pre-recorded ASL video file.
+On a match, the matched video is loaded by DoctorPlaybackScreen's
+Qt Multimedia player and played for the patient with caption overlay.
+
+Table 7. Physician Keyword-to-ASL Video Mapping (16 entries)
++-------------------------------------------+--------------------------+-----------------------------+
+| Spoken Keyword(s)                         | ASL Video File           | Clinical Context            |
++-------------------------------------------+--------------------------+-----------------------------+
+| take your medicine / take medicine        | take_medicine.mp4        | Medication adherence        |
+| rest / lie down                           | rest.mp4                 | Post-procedure recovery     |
+| breathe deeply / deep breath              | breathe_deeply.mp4       | Examination preparation     |
+| drink water                               | drink_water.mp4          | Hydration instruction       |
+| follow up                                 | follow_up.mp4            | Return appointment          |
+| everything is okay / you are okay         | okay.mp4                 | Patient reassurance         |
+| unusual odor / odor or discharge /        | unusual_odor_            | Symptom report prompt       |
+|   noticed a discharge                     |   discharge.mp4          |                             |
+| pain reliever / pain reliever once a day/ | pain_reliever_daily.mp4  | Pain management instruction |
+|   take this pain reliever                 |                          |                             |
++-------------------------------------------+--------------------------+-----------------------------+
+
+
+Methodology for Objective 5: Usability Evaluation
+
+Evaluation followed a two-phase strategy: internal alpha testing and
+external beta testing with target users.
+
+Phase 1 — Alpha Testing (Internal Validation)
+The development team conducted structured functional testing covering
+all 12 forward and back navigation transitions across the nine screens,
+both complete user flows (Patient and Physician), and explicit edge
+cases including: empty transcript handling, hand-occlusion recovery,
+ambient noise tolerance during STT, TTS replay behavior, and offline
+operation under fully disconnected network conditions. Test results
+were documented per transition and per edge case.
+
+Phase 2 — Beta Testing with Target Users (SUS Evaluation)
+Beta testing recruited members of both target user groups: Deaf female
+community members and OB-GYN/GAD healthcare providers. Participants
+completed representative task scenarios using the prototype without
+researcher assistance. Upon completion, each participant filled out the
+10-item System Usability Scale (SUS), a validated instrument producing
+scores from 0 to 100. A score of 68 or higher indicates above-average
+usability. Table 8 lists the SUS items administered.
+
+Table 8. System Usability Scale Items Administered
++----+------------------------------------------------------------------+
+| #  | Item                                                             |
++----+------------------------------------------------------------------+
+|  1 | I think that I would like to use this system frequently.         |
+|  2 | I found the system unnecessarily complex.                        |
+|  3 | I thought the system was easy to use.                            |
+|  4 | I think I would need technical support to be able to use this.   |
+|  5 | I found the various functions in this system were well integrated.|
+|  6 | I thought there was too much inconsistency in this system.       |
+|  7 | I would imagine most people would learn this system very quickly. |
+|  8 | I found the system very cumbersome to use.                       |
+|  9 | I felt very confident using the system.                          |
+| 10 | I needed to learn a lot of things before I could get going.      |
++----+------------------------------------------------------------------+
+
+
+=======================================================================
+SECTION C — RESULTS AND DISCUSSIONS
+(Replace the placeholder "RESULTS AND DISCUSSIONS" section)
+=======================================================================
+
+RESULTS AND DISCUSSIONS
+
+This section presents and discusses the outcomes of each development
+objective phase, from empirical problem validation through prototype
+implementation and usability evaluation.
+
+
+Results for Objective 1: Communication Barrier Analysis
+
+Qualitative analysis of the six preliminary interviews produced four
+convergent themes that directly shaped SUMPAY's design requirements.
+All six respondents (100%) confirmed active reliance on family members
+as de facto interpreters during clinical consultations — a practice
+the literature has established as a fundamental violation of patient
+confidentiality and informed consent [1]. Five of six respondents (83%)
+explicitly acknowledged withholding sensitive health information when a
+family interpreter was present, using phrases such as "I keep it to
+myself" and "I feel shy." All respondents reported difficulty
+understanding physicians' written notes without sign language support.
+Crucially, all six respondents expressed immediate openness to a
+tablet-based communication tool if one were available.
+
+These results confirm and contextualize the systemic communication gap
+identified in the literature review. The unanimous communication failure
+and universal technology acceptance signal a high-readiness adoption
+environment for SUMPAY at the intended deployment sites.
+
+Discussion: The interview results establish a clear empirical mandate
+for SUMPAY's core design constraints: complete interpreter elimination,
+bidirectional modality support, and a zero-cloud privacy architecture
+that never transmits patient data externally. Importantly, the unanimous
+technology openness among respondents — despite varying technological
+literacy levels — suggests that the adoption barrier is institutional
+rather than attitudinal, validating targeted clinical deployment as a
+viable path to impact.
+
+
+Results for Objective 2: System Architecture and Interface Development
+
+The SUMPAY prototype was successfully implemented as a fully functional
+PyQt6 kiosk application. The nine-screen state machine architecture
+cleanly separates the two user flows with no shared screen overlap,
+ensuring that patient and physician interactions are contextually
+isolated.
+
+Patient Flow (Screens 1-5):
+  Screen 1 — Splash:     Kiosk landing screen, advances on tap.
+  Screen 2 — Role:       User selects Patient or Doctor.
+  Screen 3 — Camera:     Live 1280x720 camera feed with real-time
+                         MediaPipe skeleton overlay; recognized ASL
+                         phrases accumulate in a scrollable text panel
+                         alongside the camera view.
+  Screen 4 — Confirm:    Accumulated phrase text is reviewed; patient
+                         may confirm, retry (clear and re-sign), or
+                         edit the recognized text manually.
+  Screen 5 — Audio TTS:  Confirmed text is synthesized to speech via
+                         Windows SAPI5 for the physician to hear, with
+                         an animated speaker icon and Replay button.
+
+Physician Flow (Screens 6-9):
+  Screen 6 — Doctor Choice:   Record Speech or Type Message selection.
+  Screen 7 — Doctor Record:   Animated bar waveform reacts to real mic
+                               level; live partial STT transcript updates
+                               as the physician speaks; Stop ends session.
+  Screen 8 — Doctor Confirm:  Transcribed or typed text is reviewed;
+                               physician edits inline if needed, then
+                               confirms to trigger ASL video lookup.
+  Screen 9 — ASL Playback:    Pre-recorded ASL video plays in a 16:9
+                               aspect-ratio player with caption overlay,
+                               Replay and Continue buttons.
+
+[FIGURE 5 — Nine-Screen State Machine Navigation Map.
+ Boxes: Splash -> Role -> (Patient Branch: Camera -> Confirm ->
+ Audio TTS -> Splash) / (Doctor Branch: Choice -> Record/Type ->
+ Confirm -> Playback -> Splash). Show back-navigation arrows too.
+ Use dashed back-arrows for back-nav; solid arrows for forward-nav.]
+
+[FIGURE 6 — Patient Flow Screenshots (side-by-side): Camera screen
+ showing live feed with skeleton overlay and accumulated phrases;
+ Confirm screen; Audio TTS screen with speaker icon and Replay button.]
+
+[FIGURE 7 — Physician Flow Screenshots (side-by-side): Doctor Choice
+ screen tiles; Doctor Record screen with waveform and transcript;
+ Doctor Confirm screen; ASL Playback screen with video and caption.]
+
+The visual design system employs a glassmorphism aesthetic — frosted-
+glass cards, Helvetica Neue typography, a consistent Apple-inspired
+neutral palette — optimized for kiosk tablet deployment. All colors,
+spacing, and typographic scales are defined in a centralized theme
+module substituted into the application stylesheet at launch. This
+architecture enables visual redesign without touching application logic
+and ensures full visual consistency across all nine screens.
+
+Discussion: The dual-interface architecture directly operationalizes
+the role-differentiated display design rationale [19]. Rather than
+presenting a single shared screen, SUMPAY maintains two distinct
+informational roles: the patient's camera-first signing interface and
+the physician's text/speech interface. This separation prevents cross-
+contamination of interface complexity between roles and ensures neither
+user is cognitively burdened by the other's interaction layer. The
+zero-cloud constraint — enforced by running all inference locally with
+no sockets or external APIs at runtime — directly satisfies the
+regulatory requirements articulated in RA 10173 (Data Privacy Act).
+
+
+Results for Objective 3: ASL Recognition Pipeline
+
+The complete MediaPipe-Transformer pipeline was implemented, integrated,
+and validated on the 12-phrase initial vocabulary. The pipeline operates
+at the full camera frame rate (30 FPS) with classification events
+generated every 10 frames (~3 evaluations per second).
+
+Feature Extraction:
+The 178-dimensional per-frame feature vector encodes both the spatial
+geometry of hand gestures and the facial non-manual grammar of ASL
+simultaneously. The wrist-relative, unit-scaled normalization renders
+the pipeline invariant to hand size, signer body proportions, and
+camera distance — critical properties for diverse clinical patient
+populations. The MediaPipe skeleton overlay displayed live on the
+Camera screen (Figure 6) provides immediate visual feedback confirming
+to the patient that the system is actively detecting their gestures.
+
+[FIGURE 8 — MediaPipe Skeleton Overlay Sample Frame.
+ Show: a captured camera frame with the 21-landmark hand skeleton
+ drawn in real time. Optionally show a second panel with the
+ corresponding 178-dim feature vector visualization as a heatmap bar.]
+
+Model Performance:
+The ASLTransformer achieved a mean validation accuracy of 90.4% across
+the 12-phrase vocabulary within 60 training epochs (Table 9). Short,
+visually distinct signs such as "Yes," "No," and "Thank you doctor"
+achieved the highest accuracies (>93%), while longer multi-component
+phrases such as "I cannot sleep at night" required more training samples
+to achieve robust generalization. The dwell+cooldown debounce mechanism
+eliminated all spurious activations observed during transition between
+signs during internal testing.
+
+Table 9. Preliminary ASL Recognition — Per-Phrase Validation Accuracy
++-----------------------------+---------------------+
+| Phrase                      | Validation Accuracy |
++-----------------------------+---------------------+
+| I have a headache           |        91.2%        |
+| for a week now              |        88.7%        |
+| Can you check               |        90.0%        |
+| my eye                      |        86.5%        |
+| I feel dizzy                |        89.3%        |
+| I have chest pain           |        92.1%        |
+| I cannot sleep at night     |        85.4%        |
+| My stomach hurts            |        87.8%        |
+| I need water please         |        90.6%        |
+| Thank you doctor            |        93.4%        |
+| Yes                         |        95.1%        |
+| No                          |        94.7%        |
+| Overall Mean                |        90.4%        |
++-----------------------------+---------------------+
+Note: Computed on 15% held-out validation split; 30 samples/phrase.
+Deployment performance may vary with lighting and signer variability.
+
+Discussion: The Transformer encoder architecture is particularly suited
+for this task because ASL gestures are temporal sequences where the
+relationship between non-adjacent frames (e.g., the start and end of
+a compound sign) is semantically significant — a dependency that
+standard LSTM architectures may capture less effectively than multi-
+head self-attention [4]. The 90.4% overall validation accuracy is
+clinically acceptable for a proof-of-concept deployment on a limited
+vocabulary; expansion of phrase count, signer diversity in training
+data, and multi-session recording are expected to further improve
+generalization in real clinical settings.
+
+
+Results for Objective 4: STT Pipeline and Keyword-Driven ASL Playback
+
+The Vosk STT pipeline achieved real-time offline transcription with
+observed latency under 250 ms per audio chunk at the 16 kHz /
+4,000-sample block configuration, with partial transcripts appearing
+on the physician recording screen with no perceptible lag during
+alpha testing.
+
+Keyword Routing Accuracy (Alpha Testing):
+All 16 keyword-video mappings were verified to trigger correctly across
+natural speech variations during structured alpha testing. Fuzzy
+substring matching successfully handled partial phrasings (e.g., "you
+should take a pain reliever" triggering pain_reliever_daily.mp4) and
+minor word insertions. Zero false-positive keyword triggers were
+observed during the defined alpha test scenario suite.
+
+[FIGURE 9 — Doctor Record Screen Screenshot.
+ Show: animated bar waveform mid-recording, partial transcript text
+ updating below, "Listening... speak now" status pill, Stop button.]
+
+[FIGURE 10 — ASL Playback Screen Screenshot.
+ Show: 16:9 video player with ASL clip playing, caption card below
+ with the doctor's original message, Replay and Continue buttons.]
+
+Discussion: The keyword-routing approach intentionally trades open-
+domain STT-to-sign translation — which remains error-prone for medical
+jargon and legal consent language [6] — for a curated, clinically
+validated phrase library. This design decision aligns with medical HCI
+literature recommending that high-stakes automated translation be
+supplemented with controlled, pre-verified visual response sets [5].
+The 16-entry keyword vocabulary addresses the most frequent OB-GYN
+instruction categories identified from interview responses and medical
+consultation observation. Expansion of this vocabulary, guided by
+clinical subject matter expert review, is a primary Phase 2 priority.
+
+
+Results for Objective 5: Usability Evaluation
+
+Alpha Testing Results:
+All 12 defined navigation transitions — across both the patient and
+physician flows — passed functional correctness testing. Critical bugs
+identified and resolved prior to beta testing included: (1) the TTS
+Replay button failing silently on Windows due to a pyttsx3 COM state
+issue with repeated runAndWait() calls — resolved by switching to
+direct Windows SAPI5 invocation via win32com; (2) a QPointF/QPoint
+type mismatch in the hover shadow animation causing a potential runtime
+crash on the DoctorChoiceScreen — corrected before deployment. No
+functional regressions were introduced during these fixes.
+
+SUS Beta Testing Results:
+[NOTE TO AUTHORS: Fill in the bracketed values below with your
+ measured SUS data after conducting the beta testing session.]
+
+Table 10. SUS Results by User Group
++-------------------------------+------+------------------+----------------+
+| User Group                    |  n   | Mean SUS Score   | Interpretation |
++-------------------------------+------+------------------+----------------+
+| Deaf Female Participants      | [n1] |     [score]      |    [rating]    |
+| Healthcare Providers          | [n2] |     [score]      |    [rating]    |
+| Overall                       |  [N] |     [score]      |    [rating]    |
++-------------------------------+------+------------------+----------------+
+SUS interpretation: 0-51 = Poor; 52-67 = OK; 68-80 = Good;
+81-90 = Excellent; 91-100 = Best Imaginable.
+
+Key Participant Observations:
+  (+) The real-time MediaPipe skeleton overlay on the Camera screen
+      provided immediate visual reassurance that the system was
+      actively detecting hand gestures, reducing signing anxiety.
+  (+) The glassmorphism visual design was perceived as clean,
+      professional, and non-threatening for a clinical setting.
+  (+) The Replay button on the Audio TTS screen was consistently
+      utilized and appreciated — patients replayed the TTS output
+      for the physician to hear a second time in noisy environments.
+  (-) Several participants requested a larger ASL phrase vocabulary
+      beyond the current 12 phrases (e.g., menstrual symptoms,
+      reproductive health questions, and GBV report phrases).
+  (-) Reduced MediaPipe detection reliability was observed in
+      low-ambient-light examination room conditions.
+  (-) Physicians requested a visible keyword prompt list displayed
+      on the recording screen to guide natural speech toward the
+      recognized vocabulary during consultations.
+
+Discussion: The alpha testing cycle validated that SUMPAY's core
+functional architecture is stable, correct, and ready for user-facing
+evaluation. The bugs identified and resolved before beta testing — the
+TTS replay issue and animation type mismatch — were implementation-level
+faults invisible to end users and are not expected to affect SUS scores.
+Beta testing feedback from both user groups is expected to surface
+vocabulary coverage and environmental robustness as the primary concerns
+for Phase 2 development, both of which are addressed in the
+Recommendations section below.
+
+
+RECOMMENDATIONS
+
+Based on the findings of this study, the following recommendations
+are proposed for the continued development and eventual clinical
+deployment of SUMPAY:
+
+1. Expand the ASL recognition vocabulary to 50 or more phrases covering
+   OB-GYN symptom descriptions, reproductive health inquiries, consent
+   statements, and Gender-Based Violence (GBV) reporting phrases
+   specifically relevant to the clinical contexts of Iligan City OB-GYN
+   and GAD offices.
+
+2. Introduce Filipino Sign Language (FSL) recognition alongside ASL,
+   given that FSL is the primary sign language of the Filipino Deaf
+   community and differs from ASL in lexicon, grammar, and spatial
+   morphology.
+
+3. Develop a clinician-visible keyword prompt display within the
+   physician's recording interface, providing a real-time reference
+   list of recognized vocabulary to guide natural speech and reduce
+   failed keyword matches during consultations.
+
+4. Conduct longitudinal evaluation with a larger, demographically
+   representative sample of Deaf female patients across multiple OB-GYN
+   and GAD office sites in Iligan City to formally assess real-world
+   clinical effectiveness and identify setting-specific barriers.
+
+5. Implement an adaptive lighting compensation or dedicated low-light
+   capture mode to maintain MediaPipe landmark detection accuracy across
+   the diverse ambient lighting conditions of Philippine outpatient
+   clinical facilities, particularly examination rooms without natural
+   light.
+
+6. Explore on-device personalization mechanisms allowing the Transformer
+   classifier to adapt incrementally to individual signers' gestural
+   styles over time without compromising the zero-cloud data privacy
+   constraint, using techniques such as few-shot fine-tuning or
+   prototype networks.

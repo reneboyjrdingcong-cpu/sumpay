@@ -46,9 +46,11 @@ class CameraWorker(QThread):
     def run(self) -> None:
         self._running = True
         cap = cv2.VideoCapture(self._device_index)
+        cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._height)
         cap.set(cv2.CAP_PROP_FPS, self._target_fps)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         if not cap.isOpened():
             print(f"[camera] could not open device {self._device_index}")

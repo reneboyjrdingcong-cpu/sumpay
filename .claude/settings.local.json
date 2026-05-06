@@ -31,7 +31,11 @@
       "PowerShell(python -m py_compile gui/theme.py gui/widgets/screen_header.py gui/widgets/primary_button.py gui/screens/splash_screen.py gui/screens/camera_screen.py gui/screens/confirm_screen.py gui/screens/audio_screen.py gui/connector.py gui/main_window.py)",
       "PowerShell(Get-ChildItem assets -ErrorAction SilentlyContinue | Select-Object Name; \"---\"; Get-ChildItem assets/mediapipe -ErrorAction SilentlyContinue | Select-Object Name; \"---\"; Get-ChildItem assets/vosk -ErrorAction SilentlyContinue | Select-Object Name; \"---\"; Get-ChildItem assets/asl_videos -ErrorAction SilentlyContinue | Select-Object Name; \"---\"; Get-ChildItem models -ErrorAction SilentlyContinue | Select-Object Name; \"---\"; Get-ChildItem data/recordings -ErrorAction SilentlyContinue | Select-Object Name)",
       "PowerShell(Write-Output \"assets:\"; Get-ChildItem assets -ErrorAction SilentlyContinue -Force | ForEach-Object { Write-Output $_.Name }; Write-Output \"\"; Write-Output \"assets/mediapipe:\"; Get-ChildItem assets/mediapipe -ErrorAction SilentlyContinue -Force | ForEach-Object { Write-Output $_.Name }; Write-Output \"\"; Write-Output \"assets/vosk:\"; Get-ChildItem assets/vosk -ErrorAction SilentlyContinue -Force | ForEach-Object { Write-Output $_.Name }; Write-Output \"\"; Write-Output \"assets/asl_videos:\"; Get-ChildItem assets/asl_videos -ErrorAction SilentlyContinue -Force | ForEach-Object { Write-Output $_.Name }; Write-Output \"\"; Write-Output \"models:\"; Get-ChildItem models -ErrorAction SilentlyContinue -Force | ForEach-Object { Write-Output $_.Name }; Write-Output \"\"; Write-Output \"data/recordings:\"; Get-ChildItem data/recordings -ErrorAction SilentlyContinue -Force | ForEach-Object { Write-Output $_.Name })",
-      "PowerShell(python -c \"import pptx; print\\(pptx.__version__\\)\")"
+      "PowerShell(python -c \"import pptx; print\\(pptx.__version__\\)\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\dingc\\\\Downloads\\\\ASL finbal test\" -Recurse -Filter \"*.py\" -o Name)",
+      "Bash(python -c \"from gui.widgets.status_pill import StatusPill; from gui.screens.doctor_choice_screen import DoctorChoiceScreen; from gui.screens.doctor_record_screen import DoctorRecordScreen; from gui.screens.doctor_confirm_screen import DoctorConfirmScreen; from gui.screens.doctor_playback_screen import DoctorPlaybackScreen; print\\('OK'\\)\")",
+      "Bash(git *)",
+      "Bash(python *)"
     ]
   }
 }

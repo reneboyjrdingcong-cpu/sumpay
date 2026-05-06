@@ -7,13 +7,13 @@ from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy,
-    QStackedLayout,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QStackedLayout,
 )
 
 from gui import theme
 from gui.widgets.glass_card import GlassCard
-from gui.widgets.circle_button import CircleButton
+from gui.widgets.primary_button import PrimaryButton
+from gui.widgets.screen_header import ScreenHeader
 
 
 class _AspectRatioWidget(QWidget):
@@ -23,7 +23,9 @@ class _AspectRatioWidget(QWidget):
         super().__init__(parent)
         self._content = content
         self._content.setParent(self)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         self.setMinimumSize(640, 360)
 
     def resizeEvent(self, event):
@@ -47,32 +49,24 @@ class DoctorPlaybackScreen(QWidget):
         self.setStyleSheet(f"background-color: {theme.BG_PRIMARY};")
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(60, 32, 60, 32)
+        root.setContentsMargins(
+            theme.SCREEN_PADDING_H, theme.SCREEN_PADDING_TOP,
+            theme.SCREEN_PADDING_H, theme.SCREEN_PADDING_BOTTOM,
+        )
         root.setSpacing(0)
 
-        # ── Top bar with back button ─────────────────────────────────────── #
-        top_bar = QHBoxLayout()
-        back_btn = QPushButton("‹ Back")
-        back_btn.setFlat(True)
-        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        back_btn.setStyleSheet(
-            f"color: {theme.TEXT_HINT}; "
-            f"font-size: {theme.FONT_SIZE_HINT}px; "
-            "font-weight: 300; background: transparent; border: none;"
-        )
-        back_btn.clicked.connect(self.back)
-        top_bar.addWidget(back_btn)
-        top_bar.addStretch()
-        root.addLayout(top_bar)
-        root.addSpacing(12)
+        header = ScreenHeader()
+        header.back.connect(self.back)
+        root.addWidget(header)
+        root.addSpacing(theme.SPACE_MD)
 
-        # ── Outer glass card wraps the video ────────────────────────────── #
+        # ── Outer glass card wraps the video ────────────────────────── #
         outer_card = GlassCard(deep=False)
         outer_layout = QVBoxLayout(outer_card)
-        outer_layout.setContentsMargins(20, 20, 20, 20)
+        outer_layout.setContentsMargins(
+            theme.SPACE_MD, theme.SPACE_MD, theme.SPACE_MD, theme.SPACE_MD
+        )
 
-        # Inner widget owns the stacked layout of placeholder + video widget.
-        # _AspectRatioWidget re-parents and resizes it to a centered 16:9 rect.
         inner = QWidget()
         self._stack = QStackedLayout(inner)
         self._stack.setStackingMode(QStackedLayout.StackingMode.StackAll)
@@ -82,61 +76,72 @@ class DoctorPlaybackScreen(QWidget):
         self._placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._placeholder.setStyleSheet(
             f"color: {theme.TEXT_SECONDARY}; "
-            "font-size: 28px; "
-            "font-weight: 300; "
+            f"font-size: {theme.FONT_SIZE_HEADING}px; "
+            f"font-weight: {theme.WEIGHT_LIGHT}; "
             f"background: {theme.BG_GLASS_DEEP};"
         )
 
         self._video_widget = QVideoWidget()
         self._video_widget.setObjectName("videoCanvas")
 
-        self._stack.addWidget(self._placeholder)   # index 0
-        self._stack.addWidget(self._video_widget)  # index 1
+        self._stack.addWidget(self._placeholder)
+        self._stack.addWidget(self._video_widget)
         self._stack.setCurrentIndex(0)
 
         self._video_area = _AspectRatioWidget(inner)
         outer_layout.addWidget(self._video_area)
         root.addWidget(outer_card, stretch=1)
 
-        root.addSpacing(16)
+        root.addSpacing(theme.SPACE_LG)
 
-        # ── Footer: caption pill ────────────────────────────────────────── #
-        footer_card = GlassCard(deep=True)
-        footer_layout = QVBoxLayout(footer_card)
-        footer_layout.setContentsMargins(24, 10, 24, 10)
+        # ── Caption card — promoted to body-LG (the message is content) ─ #
+        caption_card = GlassCard(deep=True)
+        caption_layout = QVBoxLayout(caption_card)
+        caption_layout.setContentsMargins(
+            theme.SPACE_LG, theme.SPACE_SM, theme.SPACE_LG, theme.SPACE_SM
+        )
 
         self._caption_lbl = QLabel("")
         self._caption_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._caption_lbl.setWordWrap(True)
         self._caption_lbl.setStyleSheet(
             f"color: {theme.TEXT_SECONDARY}; "
-            f"font-size: {theme.FONT_SIZE_HINT}px; "
+            f"font-size: {theme.FONT_SIZE_CAPTION}px; "
             "font-style: italic; "
-            "font-weight: 300; "
+            f"font-weight: {theme.WEIGHT_LIGHT}; "
             "background: transparent;"
         )
-        footer_layout.addWidget(self._caption_lbl)
-        root.addWidget(footer_card, stretch=0)
+        caption_layout.addWidget(self._caption_lbl)
+        root.addWidget(caption_card, stretch=0)
 
-        root.addSpacing(16)
+        root.addSpacing(theme.SPACE_XL)
 
-        # ── Action row: Replay (red) + Continue (green) ─────────────────── #
-        action_row = QHBoxLayout()
-        action_row.setSpacing(40)
-        action_row.addStretch()
+        # ── Action pair: Replay (left) + Continue (right), 360 px row ─── #
+        action_pair = QWidget()
+        action_pair.setFixedWidth(360)
+        pair_layout = QHBoxLayout(action_pair)
+        pair_layout.setContentsMargins(0, 0, 0, 0)
+        pair_layout.setSpacing(0)
 
-        self._replay_btn = CircleButton("Replay", variant="retry")
+        self._replay_btn = PrimaryButton("Replay", variant="retry")
         self._replay_btn.clicked.connect(self._on_replay)
-        action_row.addWidget(self._replay_btn)
+        pair_layout.addWidget(self._replay_btn, alignment=Qt.AlignmentFlag.AlignLeft)
+        pair_layout.addStretch()
 
-        self._continue_btn = CircleButton("Continue", variant="confirm")
+        self._continue_btn = PrimaryButton("Continue", variant="confirm")
         self._continue_btn.clicked.connect(self.done)
-        action_row.addWidget(self._continue_btn)
+        pair_layout.addWidget(self._continue_btn, alignment=Qt.AlignmentFlag.AlignRight)
 
+        action_row = QHBoxLayout()
+        action_row.setContentsMargins(0, 0, 0, 0)
         action_row.addStretch()
-        root.addLayout(action_row)
+        action_row.addWidget(action_pair)
+        action_row.addStretch()
 
-        # ── Media player ─────────────────────────────────────────────────── #
+        root.addLayout(action_row)
+        root.addStretch(1)
+
+        # ── Media player ─────────────────────────────────────────────── #
         self._player    = QMediaPlayer(self)
         self._audio_out = QAudioOutput(self)
         self._player.setAudioOutput(self._audio_out)

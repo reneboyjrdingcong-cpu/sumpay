@@ -47,12 +47,24 @@ FONT_SIZE_DISPLAY  = FONT_SIZE_GREETING   # 56 — splash hello
 FONT_SIZE_TITLE    = FONT_SIZE_HEADER     # 28 — large screen titles
 FONT_SIZE_HEADING  = 24                   # body content on confirm / audio
 FONT_SIZE_BODY_LG  = 20                   # subtitles, screen titles inline
+FONT_SIZE_CAPTION  = FONT_SIZE_BODY_LG    # 20 — playback transcript caption
 
 # Weight tokens — name what is already in use
 WEIGHT_LIGHT   = 300
 WEIGHT_REGULAR = 400
 WEIGHT_MEDIUM  = 500
 WEIGHT_SEMI    = 600
+
+# Phase 2 — semantic tokens replacing previously-hardcoded values
+WAVE_BAR         = "#1D1D1F"               # waveform fill (== TEXT_PRIMARY)
+STATUS_LIVE_DOT  = "#FF3B30"               # systemRed for the live recording dot
+TEXT_SELECTION   = "rgba(0, 122, 255, 60)" # systemBlue 24% — text-edit selection
+ACCENT_EDIT_TINT = "rgba(255, 159, 10, 36)" # editing pill background
+
+# Centralized animation magic numbers (Phase 1 already uses these values)
+PULSE_DURATION_MS = 900
+HOVER_BLUR_REST   = 40
+HOVER_BLUR_ACTIVE = 60
 
 # Landmark overlay — kept visible against white background
 LANDMARK_HAND       = "#1D1D1F"

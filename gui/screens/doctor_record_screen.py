@@ -3,18 +3,17 @@ from __future__ import annotations
 
 import math
 
-from PyQt6.QtCore import (
-    Qt, pyqtSignal, pyqtSlot,
-    QPropertyAnimation, QEasingCurve, QRectF, QTimer,
-)
+from PyQt6.QtCore import Qt, pyqtSignal, pyqtSlot, QRectF, QTimer
 from PyQt6.QtGui import QColor, QPainter
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 )
 
 from gui import theme
 from gui.widgets.glass_card import GlassCard
-from gui.widgets.circle_button import CircleButton
+from gui.widgets.primary_button import PrimaryButton
+from gui.widgets.screen_header import ScreenHeader
+from gui.widgets.status_pill import StatusPill
 
 
 # ---------------------------------------------------------------------------
@@ -26,8 +25,6 @@ class _LiveWaveform(QWidget):
     Bar waveform that self-animates via QTimer.
     - Idle: gentle sine sweep at low amplitude.
     - When set_level() is called with real mic data, bars react immediately.
-    The timer drives repaints at ~30 fps regardless of mic input, so the
-    widget always looks alive even if STT isn't delivering mic_level yet.
     """
 
     _N_BARS    = 22
@@ -35,7 +32,7 @@ class _LiveWaveform(QWidget):
     _BAR_GAP   = 5
     _MIN_H     = 6
     _MAX_H     = 60
-    _IDLE_AMP  = 0.18   # idle sine amplitude (fraction of MAX_H)
+    _IDLE_AMP  = 0.18
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -43,11 +40,10 @@ class _LiveWaveform(QWidget):
         self.setFixedSize(total_w, 80)
 
         self._bars     = [self._MIN_H] * self._N_BARS
-        self._phase    = 0.0           # idle animation phase (radians)
-        self._has_mic  = False         # True once real mic data arrives
-        self._mic_idle = 0             # frames since last mic_level call
+        self._phase    = 0.0
+        self._has_mic  = False
+        self._mic_idle = 0
 
-        # Drive repaints at 33 ms ≈ 30 fps
         self._timer = QTimer(self)
         self._timer.setInterval(33)
         self._timer.timeout.connect(self._tick)
@@ -63,7 +59,6 @@ class _LiveWaveform(QWidget):
         self._timer.stop()
 
     def set_level(self, level: float) -> None:
-        """Called by the Connector when a real mic_level signal arrives."""
         self._has_mic = True
         self._mic_idle = 0
         level = max(0.0, min(1.0, level))
@@ -72,14 +67,13 @@ class _LiveWaveform(QWidget):
         self.update()
 
     def _tick(self) -> None:
-        self._phase += 0.18            # advance phase each frame
+        self._phase += 0.18
 
         self._mic_idle += 1
-        if self._mic_idle > 6:         # ~200 ms with no real data → idle mode
+        if self._mic_idle > 6:
             self._has_mic = False
 
         if not self._has_mic:
-            # Synthesise a gentle sine wave across all bars
             new_bars = []
             for i in range(self._N_BARS):
                 angle = self._phase + i * 0.45
@@ -97,9 +91,10 @@ class _LiveWaveform(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         cy = self.height() / 2
         x  = 0
+        base = QColor(theme.WAVE_BAR)
         for bar_h in self._bars:
             alpha = int(70 + 185 * (bar_h / self._MAX_H))
-            color = QColor(29, 29, 31, alpha)
+            color = QColor(base.red(), base.green(), base.blue(), alpha)
             p.setBrush(color)
             p.setPen(Qt.PenStyle.NoPen)
             r    = min(self._BAR_W / 2, bar_h / 2)
@@ -110,62 +105,19 @@ class _LiveWaveform(QWidget):
 
 
 # ---------------------------------------------------------------------------
-# Pulse dot
-# ---------------------------------------------------------------------------
-
-class _LiveDot(QWidget):
-    """12×12 pulsing red dot — indicates active recording."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setFixedSize(12, 12)
-        self._opacity = 1.0
-
-        self._anim = QPropertyAnimation(self, b"opacity", self)
-        self._anim.setDuration(800)
-        self._anim.setStartValue(0.3)
-        self._anim.setEndValue(1.0)
-        self._anim.setEasingCurve(QEasingCurve.Type.SineCurve)
-        self._anim.setLoopCount(-1)
-
-    def start(self) -> None:
-        self._anim.start()
-
-    def stop_anim(self) -> None:
-        self._anim.stop()
-        self._opacity = 0.0
-        self.update()
-
-    def get_opacity(self) -> float:
-        return self._opacity
-
-    def set_opacity(self, v: float) -> None:
-        self._opacity = v
-        self.update()
-
-    opacity = property(get_opacity, set_opacity)
-
-    def paintEvent(self, event) -> None:
-        p = QPainter(self)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        color = QColor(220, 53, 69)
-        color.setAlphaF(self._opacity)
-        p.setBrush(color)
-        p.setPen(Qt.PenStyle.NoPen)
-        p.drawEllipse(self.rect())
-        p.end()
-
-
-# ---------------------------------------------------------------------------
 # Waveform card
 # ---------------------------------------------------------------------------
 
 class _WaveformCard(GlassCard):
     def __init__(self, parent=None):
         super().__init__(parent, deep=False)
+        self.setMaximumWidth(720)
+        self.setFixedHeight(200)
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setContentsMargins(40, 32, 40, 32)
+        layout.setContentsMargins(
+            theme.SPACE_LG, theme.SPACE_LG, theme.SPACE_LG, theme.SPACE_LG
+        )
 
         self._waveform = _LiveWaveform()
         layout.addWidget(self._waveform, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -185,7 +137,7 @@ class _WaveformCard(GlassCard):
 # ---------------------------------------------------------------------------
 
 class DoctorRecordScreen(QWidget):
-    recording_stopped = pyqtSignal(str)   # emits transcript text (may be empty)
+    recording_stopped = pyqtSignal(str)
     back              = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -195,64 +147,63 @@ class DoctorRecordScreen(QWidget):
         self._transcript = ""
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(40, 32, 40, 40)
+        root.setContentsMargins(
+            theme.SCREEN_PADDING_H, theme.SCREEN_PADDING_TOP,
+            theme.SCREEN_PADDING_H, theme.SCREEN_PADDING_BOTTOM,
+        )
         root.setSpacing(0)
 
-        # ── Top bar: back ‹  |  dot + "Recording…" ─────────────────────── #
-        top_bar = QHBoxLayout()
-        top_bar.setSpacing(10)
+        header = ScreenHeader()
+        header.back.connect(self._on_back)
+        root.addWidget(header)
 
-        back_btn = QPushButton("‹ Back")
-        back_btn.setFlat(True)
-        back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        back_btn.setStyleSheet(
-            f"color: {theme.TEXT_HINT}; "
-            f"font-size: {theme.FONT_SIZE_HINT}px; "
-            "font-weight: 300; background: transparent; border: none;"
-        )
-        back_btn.clicked.connect(self._on_back)
-        top_bar.addWidget(back_btn)
-
-        top_bar.addStretch()
-
-        self._dot = _LiveDot()
-        top_bar.addWidget(self._dot, alignment=Qt.AlignmentFlag.AlignVCenter)
-
-        rec_lbl = QLabel("Listening…  speak now")
-        rec_lbl.setStyleSheet(
-            f"color: {theme.TEXT_SECONDARY}; "
-            f"font-size: {theme.FONT_SIZE_HINT}px; "
-            "font-weight: 300; "
-            "background: transparent;"
-        )
-        top_bar.addWidget(rec_lbl)
-
-        root.addLayout(top_bar)
         root.addStretch(2)
 
-        # ── Waveform card ───────────────────────────────────────────────── #
+        # Waveform card
         self._wave_card = _WaveformCard()
-        root.addWidget(self._wave_card, alignment=Qt.AlignmentFlag.AlignCenter)
+        wave_row = QHBoxLayout()
+        wave_row.setContentsMargins(0, 0, 0, 0)
+        wave_row.addStretch()
+        wave_row.addWidget(self._wave_card)
+        wave_row.addStretch()
+        root.addLayout(wave_row)
 
-        root.addSpacing(28)
+        root.addSpacing(theme.SPACE_MD)
 
-        # ── Live partial caption ────────────────────────────────────────── #
+        # Status pill — "Listening… speak now"
+        self._status_pill = StatusPill("Listening…  speak now")
+        pill_row = QHBoxLayout()
+        pill_row.setContentsMargins(0, 0, 0, 0)
+        pill_row.addStretch()
+        pill_row.addWidget(self._status_pill)
+        pill_row.addStretch()
+        root.addLayout(pill_row)
+
+        root.addSpacing(theme.SPACE_SM)
+
+        # Live partial caption
         self._partial_lbl = QLabel("Waiting for speech…")
         self._partial_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._partial_lbl.setWordWrap(True)
+        self._partial_lbl.setMaximumWidth(600)
         self._partial_lbl.setStyleSheet(
             f"color: {theme.TEXT_HINT}; "
             f"font-size: {theme.FONT_SIZE_HINT}px; "
             "font-style: italic; "
-            "font-weight: 300; "
+            f"font-weight: {theme.WEIGHT_LIGHT}; "
             "background: transparent;"
         )
-        root.addWidget(self._partial_lbl)
+        partial_row = QHBoxLayout()
+        partial_row.setContentsMargins(0, 0, 0, 0)
+        partial_row.addStretch()
+        partial_row.addWidget(self._partial_lbl)
+        partial_row.addStretch()
+        root.addLayout(partial_row)
 
         root.addStretch(2)
 
-        # ── Stop button ─────────────────────────────────────────────────── #
-        stop_btn = CircleButton("Stop")
+        # Stop button — destructive (ends live session) → red traffic-light
+        stop_btn = PrimaryButton("Stop", variant="retry")
         stop_btn.clicked.connect(self._on_stop)
         root.addWidget(stop_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
@@ -263,12 +214,11 @@ class DoctorRecordScreen(QWidget):
     def reset(self) -> None:
         self._transcript = ""
         self._partial_lbl.setText("Waiting for speech…")
-        self._dot.start()
+        self._status_pill.start()
         self._wave_card.start()
 
     def _cleanup(self) -> None:
-        """Stop animations before leaving this screen."""
-        self._dot.stop_anim()
+        self._status_pill.stop()
         self._wave_card.stop()
 
     @pyqtSlot(float)
@@ -288,7 +238,6 @@ class DoctorRecordScreen(QWidget):
     def _on_stop(self) -> None:
         self._cleanup()
         text = self._transcript or self._partial_lbl.text()
-        # Strip placeholder text if no real transcript arrived
         if text in ("Waiting for speech…", ""):
             text = ""
         self.recording_stopped.emit(text.strip())

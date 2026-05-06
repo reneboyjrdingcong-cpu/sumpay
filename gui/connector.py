@@ -253,6 +253,4 @@ class Connector(QStackedWidget):
         if self._router:
             self._router.match(text)
         else:
-            # No router — mark playback as immediately clickable
             self._doc_playback.reset()
-            self._doc_playback._finished = True

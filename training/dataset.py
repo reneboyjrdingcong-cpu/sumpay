@@ -60,6 +60,13 @@ class ASLDataset(Dataset):
         path, label_id = self.samples[idx]
         seq = np.load(str(path)).astype(np.float32)  # (T, F)
 
+        # Drop frames with no hands detected — matches recognizer.py which
+        # never appends empty frames to its buffer. Without this, training
+        # windows contain rest-pose zeros that never appear at inference.
+        hand_present = np.any(seq[:, :126] != 0.0, axis=1)
+        if hand_present.any():
+            seq = seq[hand_present]
+
         if self.augment is not None:
             seq = self.augment(seq)
 

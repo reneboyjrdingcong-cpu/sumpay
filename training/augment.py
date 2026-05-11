@@ -61,6 +61,4 @@ def apply_train_augmentations(seq: np.ndarray) -> np.ndarray:
         seq = jitter(seq)
     if np.random.random() < 0.5:
         seq = dropout_frames(seq)
-    if np.random.random() < 0.5:
-        seq = mirror_hands(seq)
     return seq

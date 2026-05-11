@@ -42,10 +42,10 @@ class _StatusDot(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         if self._active:
-            c = QColor(0x34, 0xC7, 0x59)  # systemGreen
+            c = QColor(theme.ACCENT_PRIMARY)
             c.setAlphaF(max(0.0, min(1.0, self._opacity)))
         else:
-            c = QColor(0xA1, 0xA1, 0xA6)  # TEXT_HINT
+            c = QColor(theme.TEXT_HINT)
         p.setBrush(c)
         p.setPen(Qt.PenStyle.NoPen)
         p.drawEllipse(self.rect())
@@ -122,7 +122,7 @@ class CameraScreen(QWidget):
         pill_overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         cam_stack.addWidget(pill_overlay)
 
-        root.addWidget(cam_card, stretch=6)
+        root.addWidget(cam_card, stretch=80)
         root.addSpacing(theme.SPACE_MD)
 
         # ── Translation card ─────────────────────────────────────────── #
@@ -176,7 +176,7 @@ class CameraScreen(QWidget):
         action_row.addWidget(self._continue_btn)
         trans_layout.addLayout(action_row)
 
-        root.addWidget(trans_card, stretch=4)
+        root.addWidget(trans_card, stretch=22)
 
         # ── Animations ───────────────────────────────────────────────── #
         self._dot_anim = QPropertyAnimation(self._status_dot, b"opacity", self)

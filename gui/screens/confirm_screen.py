@@ -59,7 +59,7 @@ class ConfirmScreen(QWidget):
             f"color: {theme.TEXT_PRIMARY}; "
             f"font-size: {theme.FONT_SIZE_HINT}px; "
             f"font-weight: {theme.WEIGHT_MEDIUM}; "
-            f"background-color: rgba(255, 159, 10, 36); "
+            f"background-color: {theme.ACCENT_EDIT_TINT}; "
             "border-radius: 10px; "
             "padding: 4px 10px; "
             "letter-spacing: 1px;"
@@ -110,8 +110,8 @@ class ConfirmScreen(QWidget):
         self._edit_btn.clicked.connect(self._on_edit)
 
         btn_col.addWidget(self._confirm_btn)
-        btn_col.addWidget(self._retry_btn)
         btn_col.addWidget(self._edit_btn)
+        btn_col.addWidget(self._retry_btn)
 
         content_row.addWidget(self._text_card, stretch=3)
         content_row.addLayout(btn_col, stretch=0)

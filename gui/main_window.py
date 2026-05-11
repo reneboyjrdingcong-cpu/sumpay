@@ -13,15 +13,25 @@ from gui import theme
 def _load_stylesheet() -> str:
     qss = config.STYLES_QSS.read_text(encoding="utf-8")
     subs = {
-        "@BG_PRIMARY@":      theme.BG_PRIMARY,
-        "@BG_GLASS@":        theme.BG_GLASS,
-        "@BG_GLASS_DEEP@":   theme.BG_GLASS_DEEP,
-        "@BORDER_HAIRLINE@": theme.BORDER_HAIRLINE,
-        "@TEXT_PRIMARY@":    theme.TEXT_PRIMARY,
-        "@TEXT_SECONDARY@":  theme.TEXT_SECONDARY,
-        "@FONT_FAMILY@":     theme.FONT_FAMILY,
-        "@FONT_SIZE_BODY@":  str(theme.FONT_SIZE_BODY),
-        "@FONT_SIZE_HINT@":  str(theme.FONT_SIZE_HINT),
+        "@BG_PRIMARY@":              theme.BG_PRIMARY,
+        "@BG_GLASS@":                theme.BG_GLASS,
+        "@BG_GLASS_DEEP@":           theme.BG_GLASS_DEEP,
+        "@BORDER_HAIRLINE@":         theme.BORDER_HAIRLINE,
+        "@TEXT_PRIMARY@":            theme.TEXT_PRIMARY,
+        "@TEXT_SECONDARY@":          theme.TEXT_SECONDARY,
+        "@TEXT_SELECTION@":          theme.TEXT_SELECTION,
+        "@ACCENT_PRIMARY@":          theme.ACCENT_PRIMARY,
+        "@ACCENT_PRIMARY_HOVER@":    theme.ACCENT_PRIMARY_HOVER,
+        "@ACCENT_PRIMARY_PRESSED@":  theme.ACCENT_PRIMARY_PRESSED,
+        "@ACCENT_DANGER@":           theme.ACCENT_DANGER,
+        "@ACCENT_DANGER_HOVER@":     theme.ACCENT_DANGER_HOVER,
+        "@ACCENT_DANGER_PRESSED@":   theme.ACCENT_DANGER_PRESSED,
+        "@ACCENT_EDIT@":             theme.ACCENT_EDIT,
+        "@ACCENT_EDIT_HOVER@":       theme.ACCENT_EDIT_HOVER,
+        "@ACCENT_EDIT_PRESSED@":     theme.ACCENT_EDIT_PRESSED,
+        "@FONT_FAMILY@":             theme.FONT_FAMILY,
+        "@FONT_SIZE_BODY@":          str(theme.FONT_SIZE_BODY),
+        "@FONT_SIZE_HINT@":          str(theme.FONT_SIZE_HINT),
     }
     for token, value in subs.items():
         qss = qss.replace(token, value)

@@ -62,7 +62,7 @@ class SplashScreen(QWidget):
         root.addWidget(wordmark)
         root.addStretch(1)
 
-        # ── Greeting block ───────────────────────────────────────────── #
+        # ── Greeting block (bilingual: English + Bisaya) ─────────────── #
         greeting = QLabel("Hello.")
         greeting.setAlignment(Qt.AlignmentFlag.AlignCenter)
         greeting.setStyleSheet(
@@ -72,6 +72,16 @@ class SplashScreen(QWidget):
             "background: transparent;"
         )
         root.addWidget(greeting)
+
+        greeting_bisaya = QLabel("Kumusta.")
+        greeting_bisaya.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        greeting_bisaya.setStyleSheet(
+            f"color: {theme.TEXT_SECONDARY}; "
+            f"font-size: {theme.FONT_SIZE_DISPLAY}px; "
+            f"font-weight: {theme.WEIGHT_LIGHT}; "
+            "background: transparent;"
+        )
+        root.addWidget(greeting_bisaya)
 
         root.addSpacing(theme.SPACE_SM)
 

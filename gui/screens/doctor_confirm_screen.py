@@ -116,7 +116,7 @@ class DoctorConfirmScreen(QWidget):
         )
         text_layout.addWidget(self._count_lbl, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        # Button column — Confirm / Retry / Edit (mirrors Phase 1)
+        # Button column — Confirm / Edit / Retry (destructive last)
         btn_col = QVBoxLayout()
         btn_col.setSpacing(theme.SPACE_MD)
         btn_col.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -130,8 +130,8 @@ class DoctorConfirmScreen(QWidget):
         self._edit_btn.clicked.connect(self._on_edit)
 
         btn_col.addWidget(self._confirm_btn)
-        btn_col.addWidget(self._retry_btn)
         btn_col.addWidget(self._edit_btn)
+        btn_col.addWidget(self._retry_btn)
 
         content_row.addWidget(self._text_card, stretch=3)
         content_row.addLayout(btn_col, stretch=0)

@@ -117,7 +117,7 @@ class _RoleCard(GlassCard):
         super().__init__(parent, deep=True)
         self._role = role
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setFixedSize(300, 240)
+        self.setFixedSize(280, 260)
 
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)

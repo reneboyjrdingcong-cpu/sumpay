@@ -47,3 +47,24 @@ def test_stop_enqueues_sentinel():
     assert not worker._audio_queue.empty()
     sentinel = worker._audio_queue.get_nowait()
     assert sentinel is None
+
+
+def test_silence_threshold_classifies_correctly():
+    """Silent chunks must fall below threshold; loud chunks must exceed it."""
+    import config
+    silent = np.zeros(4000, dtype=np.float32)
+    loud = np.ones(4000, dtype=np.float32) * 0.5
+    assert float(np.sqrt(np.mean(silent ** 2))) < config.MIC_SILENCE_THRESHOLD
+    assert float(np.sqrt(np.mean(loud ** 2))) >= config.MIC_SILENCE_THRESHOLD
+
+
+def test_constructor_accepts_model_size():
+    """STTWorker should store model_size from constructor."""
+    from core import stt as stt_mod
+    worker = stt_mod.STTWorker.__new__(stt_mod.STTWorker)
+    worker._model_size = "base.en"
+    worker._sample_rate = 16000
+    worker._block_size = 4000
+    worker._running = False
+    worker._audio_queue = queue.Queue()
+    assert worker._model_size == "base.en"

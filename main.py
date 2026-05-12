@@ -23,8 +23,10 @@ def _check_assets() -> list[str]:
         warnings.append(f"Missing: {config.FACE_LANDMARKER_TASK}")
     if not config.ASL_CLASSIFIER_PT.exists():
         warnings.append(f"Missing: {config.ASL_CLASSIFIER_PT}  (run training first)")
-    if not config.VOSK_MODEL_DIR.exists():
-        warnings.append(f"Missing: {config.VOSK_MODEL_DIR}")
+    try:
+        import faster_whisper  # noqa: F401
+    except ImportError:
+        warnings.append("faster-whisper not installed — STT disabled (run: pip install faster-whisper)")
     return warnings
 
 
@@ -102,7 +104,7 @@ def main() -> int:
     try:
         from core.stt import STTWorker
         stt = STTWorker(
-            model_dir=str(config.VOSK_MODEL_DIR),
+            model_size=config.WHISPER_MODEL_SIZE,
             sample_rate=config.MIC_SAMPLE_RATE,
             block_size=config.MIC_BLOCK_SIZE,
         )

@@ -19,8 +19,6 @@ MEDIAPIPE_DIR: Path = ASSETS_DIR / "mediapipe"
 HAND_LANDMARKER_TASK: Path = MEDIAPIPE_DIR / "hand_landmarker.task"
 FACE_LANDMARKER_TASK: Path = MEDIAPIPE_DIR / "face_landmarker.task"
 
-VOSK_MODEL_DIR: Path = ASSETS_DIR / "vosk" / "vosk-model-small-en-us-0.15"
-
 ASL_VIDEOS_DIR: Path = ASSETS_DIR / "asl_videos"
 
 ASL_CLASSIFIER_PT: Path = MODELS_DIR / "asl_classifier.pt"
@@ -55,8 +53,15 @@ TRAIN_EPOCHS: int = 60
 TRAIN_LR: float = 3e-4
 TRAIN_VAL_SPLIT: float = 0.15
 
-MIC_SAMPLE_RATE: int = 16000
-MIC_BLOCK_SIZE: int = 4000
+MIC_SAMPLE_RATE: int = 16000        # Whisper input rate
+MIC_CAPTURE_RATE: int = 44100       # native device rate — captured then resampled to MIC_SAMPLE_RATE
+MIC_BLOCK_SIZE: int = 4000          # frames per callback at MIC_CAPTURE_RATE (~91 ms)
+MIC_DEVICE_INDEX: int | None = 7   # DirectSound Realtek mic — change if mic device changes
+
+WHISPER_MODEL_SIZE: str = "base.en"
+MIC_SILENCE_THRESHOLD: float = 0.01
+MIC_SILENCE_FRAMES: int = 8
+MIC_MIN_SPEECH_FRAMES: int = 2
 
 KEYWORD_MAP: dict[str, str] = {
     "take your medicine": "take_medicine.mp4",
@@ -75,6 +80,9 @@ KEYWORD_MAP: dict[str, str] = {
     "pain reliever": "pain_reliever_daily.mp4",
     "pain reliever once a day": "pain_reliever_daily.mp4",
     "take this pain reliever": "pain_reliever_daily.mp4",
+    "appreciate you bringing that up": "common_concern.mp4",
+    "very common concern": "common_concern.mp4",
+    "no need to feel self-conscious": "common_concern.mp4",
 }
 
 INITIAL_PHRASES: list[str] = [
